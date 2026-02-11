@@ -55,7 +55,7 @@ def get_stabilizers(db: Session=Depends(get_db)):
 
 @router.get("/stabilizers/{stab_id}", response_model=StabilizerResponse)
 def get_stabilizer(stab_id: int, db: Session=Depends(get_db)):
-    stab = db.query(Stabilizer).filter(Stabilizer.id == stabilizer_id).first()
+    stab = db.query(Stabilizer).filter(Stabilizer.id == stab_id).first()
     if not stab:
         raise HTTPException(status_code=404, detail="Stabilizer not found")
     return stab
