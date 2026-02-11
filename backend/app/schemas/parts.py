@@ -12,7 +12,7 @@ class PCBBase(BaseModel):
     layout: LayoutType
     mounting_type: MountingType
     hotswap: bool = False
-    switch_type = SwitchType
+    switch_type: SwitchType
     rgb: bool = False
     price: Optional[float] = None
     image_url: Optional[str] = None
