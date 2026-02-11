@@ -59,7 +59,7 @@ class CompatibilityService:
         
         # Plate <--> Switch 검사
         if plate and switch:
-            if plate.switch_type != switch_switch_type:
+            if plate.switch_type != switch.switch_type:
                 issues.append({
                     "type": "error",
                     "parts": ["Plate", "Switch"],
