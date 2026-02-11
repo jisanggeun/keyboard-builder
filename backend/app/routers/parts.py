@@ -8,6 +8,7 @@ from app.schemas import (
     PCBResponse, CaseResponse, PlateResponse,
     StabilizerResponse, SwitchResponse, KeycapResponse
 )
+from app.services.compatibility import CompatibilityService
 
 router = APIRouter(prefix="/api/parts", tags=["parts"])
 
@@ -82,6 +83,22 @@ def get_keycap(keycap_id: int, db: Session=Depends(get_db)):
         raise HTTPException(status_code=404, detail="Keycap not found")
     return keycap
 
-
+@router.post("/compatibility/check")
+def check_compatibility(
+    pcb_id: int=None,
+    case_id: int=None,
+    plate_id: int=None,
+    switch_id: int=None,
+    keycap_id: int=None,
+    db: Session=Depends(get_db)
+):
+    service = CompatibilityService(db)
+    return service.check_compatibility(
+        pcb_id=pcb_id,
+        case_id=case_id,
+        plate_id=plate_id,
+        switch_id=switch_id,
+        keycap_id=keycap_id
+    )
 
     
