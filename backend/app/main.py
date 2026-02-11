@@ -2,6 +2,7 @@ from fastapi import FastAPI
 from fastapi.middleware.cors import CORSMiddleware
 from app.database import engine, Base
 from app.models import PCB, Case, Plate, Stabilizer, Switch, Keycap
+from app.routers import parts_router
 
 # 서버 시작 시 테이블 생성
 Base.metadata.create_all(bind=engine)
@@ -21,6 +22,8 @@ app.add_middleware(
     allow_methods=["*"], # 모든 HTTP method 허용
     allow_headers=["*"], # 모든 header 허용
 )
+
+app.include_router(parts_router)
 
 @app.get("/")
 def root():
