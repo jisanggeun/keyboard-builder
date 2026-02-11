@@ -10,6 +10,7 @@ export interface PCB {
     name: string;
     manufacturer: string | null;
     layout: LayoutType;
+    mounting_type: MountingType;
     hotswap: boolean;
     switch_type: SwitchType;
     rgb: boolean;
