@@ -1,5 +1,10 @@
 from fastapi import FastAPI
 from fastapi.middleware.cors import CORSMiddleware
+from app.database import engine, Base
+from app.models import PCB, Case, Plate, Stabilizer, Switch, Keycap
+
+# 서버 시작 시 테이블 생성
+Base.metadata.create_all(bind=engine)
 
 # FastAPI APP 생성
 app = FastAPI(
