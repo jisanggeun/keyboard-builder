@@ -58,6 +58,21 @@ export default function BuilderPage() {
     // 호환성 검사
     useEffect(() => {
         async function check() {
+            // 최소 2개 이상 선택 시 검사
+            const selectedCount = [
+                selected.pcb,
+                selected.case,
+                selected.plate,
+                selected.stabilizer,
+                selected.switch,
+                selected.keycap,
+            ].filter(Boolean).length;
+
+            if(selectedCount < 2) {
+                setCompatibility(null);
+                return;
+            }
+
             const result = await checkCompatibility(
                 selected.pcb?.id,
                 selected.case?.id,
@@ -110,7 +125,10 @@ export default function BuilderPage() {
                             {pcbs.map((pcb) => (
                                 <div 
                                     key={pcb.id}
-                                    onClick={() => setSelected({ ...selected, pcb })}
+                                    onClick={() => setSelected({ 
+                                        ...selected, 
+                                        pcb: selected.pcb?.id === pcb.id ? null : pcb 
+                                    })}
                                     className={`p-3 rounded-lg cursor-pointer border transition ${
                                         selected.pcb?.id === pcb.id
                                         ? "border-blue-500 bg-blue-50"
@@ -134,7 +152,10 @@ export default function BuilderPage() {
                             {cases.map((c) => (
                                 <div
                                     key={c.id}
-                                    onClick={() => setSelected({ ...selected, case: c })}
+                                    onClick={() => setSelected({ 
+                                        ...selected, 
+                                        case: selected.case?.id === c.id ? null : c 
+                                    })}
                                     className={`p-3 rounded-lg cursor-pointer border transition ${
                                         selected.case?.id === c.id
                                         ? "border-blue-500 bg-blue-50"
@@ -158,7 +179,10 @@ export default function BuilderPage() {
                             {switches.map((sw) => (
                                 <div
                                     key={sw.id}
-                                    onClick={() => setSelected({ ...selected, switch: sw })}
+                                    onClick={() => setSelected({ 
+                                        ...selected, 
+                                        switch: selected.switch?.id === sw.id ? null : sw 
+                                    })}
                                     className={`p-3 rounded-lg cursor-pointer border transition ${
                                         selected.switch?.id === sw.id
                                         ? "border-blue-500 bg-blue-50"
@@ -182,7 +206,10 @@ export default function BuilderPage() {
                             {plates.map((plate) => (
                                 <div
                                     key={plate.id}
-                                    onClick={() => setSelected({ ...selected, plate })}
+                                    onClick={() => setSelected({ 
+                                        ...selected, 
+                                        plate: selected.plate?.id === plate.id ? null : plate
+                                    })}
                                     className={`p-3 rounded-lg cursor-pointer border transition ${
                                         selected.plate?.id === plate.id
                                         ? "border-blue-500 bg-blue-50"
@@ -206,7 +233,10 @@ export default function BuilderPage() {
                             {stabilizers.map((stab) => (
                                 <div
                                     key={stab.id}
-                                    onClick={() => setSelected({ ...selected, stabilizer: stab })}
+                                    onClick={() => setSelected({ 
+                                        ...selected, 
+                                        stabilizer: selected.stabilizer?.id === stab.id ? null : stab 
+                                    })}
                                     className={`p-3 rounded-lg cursor-pointer border transition ${
                                         selected.stabilizer?.id === stab.id
                                         ? "border-blue-500 bg-blue-50"
@@ -229,7 +259,10 @@ export default function BuilderPage() {
                             {keycaps.map((keycap) => (
                                 <div
                                     key={keycap.id}
-                                    onClick={() => setSelected({ ...selected, keycap })}
+                                    onClick={() => setSelected({ 
+                                        ...selected, 
+                                        keycap: selected.keycap?.id === keycap.id ? null : keycap
+                                    })}
                                     className={`p-3 rounded-lg cursor-pointer border transition ${
                                         selected.keycap?.id === keycap.id
                                         ? "border-blue-500 bg-blue-50"
