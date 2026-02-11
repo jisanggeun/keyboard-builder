@@ -174,7 +174,7 @@ export default function BuilderPage() {
 
                     {/* Switch */}
                     <Card className="p-4">
-                        <h3 className="font=bold text-lg mb-3">Switch</h3>
+                        <h3 className="font-bold text-lg mb-3">Switch</h3>
                         <div className="space-y-2">
                             {switches.map((sw) => (
                                 <div
