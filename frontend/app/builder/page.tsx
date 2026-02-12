@@ -1,27 +1,23 @@
 "use client";
 
-import { useState, useEffect } from "react";
+import { useState, useMemo } from "react";
 import { Card } from "@/components/ui/card";
 import { Badge } from "@/components/ui/badge";
 import { ThemeToggle } from "@/components/theme-toggle";
 import { Keyboard3D } from "@/components/keyboard-3d"
-import {
-    PCB, Case, Plate, Stabilizer, Switch, Keycap,
-    SelectedParts, CompatibilityResult
-} from "@/lib/types";
-import {
-    getPCBs, getCases, getPlates, getStabilizers,
-    getSwitches, getKeycaps, checkCompatibility
-} from "@/lib/api";
+import { SelectedParts } from "@/lib/types";
+import { checkCompatibilityLocal } from "@/lib/compatibility";
+import { useAllParts } from "@/lib/hooks";
 
 export default function BuilderPage() {
     // 파츠 목록
-    const [pcbs, setPcbs] = useState<PCB[]>([]);
-    const [cases, setCases] = useState<Case[]>([]);
-    const [plates, setPlates] = useState<Plate[]>([]);
-    const [stabilizers, setStabilizers] = useState<Stabilizer[]>([]);
-    const [switches, setSwitches] = useState<Switch[]>([]);
-    const [keycaps, setKeycaps] = useState<Keycap[]>([]);
+    const { data } = useAllParts();
+    const pcbs = data?.pcbs ?? [];
+    const cases = data?.cases ?? [];
+    const plates = data?.plates ?? [];
+    const stabilizers = data?.stabilizers ?? [];
+    const switches = data?.switches ?? [];
+    const keycaps = data?.keycaps ?? [];
 
     // 선택된 파츠
     const [selected, setSelected] = useState<SelectedParts>({
@@ -32,9 +28,6 @@ export default function BuilderPage() {
         switch: null,
         keycap: null,
     });
-
-    // 호환성 결과
-    const [compatibility, setCompatibility] = useState<CompatibilityResult | null>(null);
 
     // PCB 사이즈 별 스위치 가격
     const getSwitchCount = (layout: string | undefined): number | null => {
@@ -48,55 +41,16 @@ export default function BuilderPage() {
         }
     };
 
-    // 파츠 목록 가져오기
-    useEffect(() => {
-        async function loadParts() {
-            const [pcbData, caseData, plateData, stabData, switchData, keycapData] = await Promise.all([
-                getPCBs(),
-                getCases(),
-                getPlates(),
-                getStabilizers(),
-                getSwitches(),
-                getKeycaps(),
-            ]);
-            setPcbs(pcbData);
-            setCases(caseData);
-            setPlates(plateData);
-            setStabilizers(stabData);
-            setSwitches(switchData);
-            setKeycaps(keycapData);
-        }
-        loadParts();
-    }, []);
-
     // 호환성 검사
-    useEffect(() => {
-        async function check() {
-            // 최소 2개 이상 선택 시 검사
-            const selectedCount = [
-                selected.pcb,
-                selected.case,
-                selected.plate,
-                selected.stabilizer,
-                selected.switch,
-                selected.keycap,
-            ].filter(Boolean).length;
+    const compatibility = useMemo(() => {
+        const selectedCount = [
+            selected.pcb, selected.case, selected.plate,
+            selected.stabilizer, selected.switch, selected.keycap
+        ].filter(Boolean).length;
+        
+        if(selectedCount < 2) return null;
 
-            if(selectedCount < 2) {
-                setCompatibility(null);
-                return;
-            }
-
-            const result = await checkCompatibility(
-                selected.pcb?.id,
-                selected.case?.id,
-                selected.plate?.id,
-                selected.switch?.id,
-                selected.keycap?.id,
-            );
-            setCompatibility(result);
-        }
-        check();
+        return checkCompatibilityLocal(selected);
     }, [selected]);
 
     return (
