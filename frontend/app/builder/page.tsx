@@ -102,18 +102,18 @@ export default function BuilderPage() {
         <main className="min-h-screen bg-gray-50 dark:bg-gray-900">
             {/* 헤더 */}
             <header className="bg-white dark:bg-gray-800 border-b dark:border-gray-700 sticky top-0 z-50">
-                <div className="max-w-6xl mx-auto px-4 py-4 flex items-center justify-between">
+                <div className="max-w-6xl mx-auto px-3 sm:px-4 py-3 sm:py-4 flex items-center justify-between">
                     <div>
-                        <h1 className="text-2xl font-bold text-gray-900 dark:text-white">
+                        <h1 className="text-xl sm:text-2xl font-bold text-gray-900 dark:text-white">
                             ⌨️ KeyboardBuilder
                         </h1>
-                        <p className="text-gray-500 dark:text-gray-400 text-sm">
+                        <p className="text-gray-500 dark:text-gray-400 text-xs sm:text-sm hidden sm:block">
                             커스텀 키보드 파츠 호환성 검증
                         </p>
                     </div>
-                    <div className="flex items-center gap-4">
+                    <div className="flex items-center gap-2 sm:gap-4">
                         <ThemeToggle />
-                        <a href="/" className="text-gray-600 dark:text-gray-300 hover:text-gray-900 dark:hover:text-white transition">
+                        <a href="/" className="text-sm sm:text-base text-gray-600 dark:text-gray-300 hover:text-gray-900 dark:hover:text-white transition">
                             홈으로
                         </a>
                     </div>
@@ -122,9 +122,9 @@ export default function BuilderPage() {
 
             <div className="max-w-6xl mx-auto px-4 py-8">
                 {/* 선택한 파츠 요약 */}
-                <Card className="p-6 mb-6 dark:bg-gray-800 dark:border-gray-700">
-                    <div className="flex items-center justify-between mb-4">
-                        <h2 className="text-lg font-bold dark:text-white">선택한 파츠</h2>
+                <Card className="p-4 sm:p-6 mb-4 sm:mb-6 dark:bg-gray-800 dark:border-gray-700">
+                    <div className="flex items-center justify-between mb-3 sm:mb-4">
+                        <h2 className="text-base sm:text-lg font-bold dark:text-white">선택한 파츠</h2>
                         {(selected.pcb || selected.case || selected.plate ||
                             selected.stabilizer || selected.switch || selected.keycap) && (
                                 <button onClick={() => setSelected({
@@ -248,9 +248,9 @@ export default function BuilderPage() {
                     {/* 총 가격 */}
                     {(selected.pcb || selected.case || selected.plate ||
                         selected.stabilizer || selected.switch || selected.keycap) && (
-                            <div className="mt-4 pt-4 border-t dark:border-gray-700 flex justify-between items-center">
-                                <span className="text-gray-600 dark:text-gray-400">총 예상 가격</span>
-                                <span className="text-xl font-bold text-blue-600">
+                            <div className="mt-3 sm:mt-4 pt-3 sm:pt-4 border-t dark:border-gray-700 flex justify-between items-center">
+                                <span className="text-sm sm:text-base text-gray-600 dark:text-gray-400">총 예상 가격</span>
+                                <span className="text-lg sm:text-xl font-bold text-blue-600">
                                     ${(
                                         (selected.pcb?.price || 0) +
                                         (selected.case?.price || 0) + 
@@ -290,10 +290,10 @@ export default function BuilderPage() {
                     )}
                 </div>
                 {/* 파츠 선택 그리드 */}
-                <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
+                <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4 sm:gap-6">
                     {/* PCB */}
-                    <Card className="p-4 dark:bg-gray-800 dark:border-gray-700">
-                        <h3 className="font-bold text-lg mb-3 dark:text-white">PCB</h3>
+                    <Card className="p-3 sm:p-4 dark:bg-gray-800 dark:border-gray-700">
+                        <h3 className="font-bold text-base sm:text-lg mb-2 sm:mb-3 dark:text-white">PCB</h3>
                         <div className="space-y-2">
                             {pcbs.map((pcb) => (
                                 <div 
@@ -320,8 +320,8 @@ export default function BuilderPage() {
                     </Card> 
 
                     {/* Case */}
-                    <Card className="p-4 dark:bg-gray-800 dark:border-gray-700">
-                        <h3 className="font-bold text-lg mb-3 dark:text-white">Case</h3>
+                    <Card className="p-3 sm:p-4 dark:bg-gray-800 dark:border-gray-700">
+                        <h3 className="font-bold text-base sm:text-lg mb-2 sm:mb-3 dark:text-white">Case</h3>
                         <div className="space-y-2">
                             {cases.map((c) => (
                                 <div
@@ -348,8 +348,8 @@ export default function BuilderPage() {
                     </Card>
 
                     {/* Switch */}
-                    <Card className="p-4 dark:bg-gray-800 dark:border-gray-700">
-                        <h3 className="font-bold text-lg mb-3 dark:text-white">Switch</h3>
+                    <Card className="p-3 sm:p-4 dark:bg-gray-800 dark:border-gray-700">
+                        <h3 className="font-bold text-base sm:text-lg mb-2 sm:mb-3 dark:text-white">Switch</h3>
                         <div className="space-y-2">
                             {switches.map((sw) => (
                                 <div
@@ -376,8 +376,8 @@ export default function BuilderPage() {
                     </Card>
 
                     {/* Plate */}
-                    <Card className="p-4 dark:bg-gray-800 dark:border-gray-700">
-                        <h3 className="font-bold text-lg mb-3 dark:text-white">Plate</h3>
+                    <Card className="p-3 sm:p-4 dark:bg-gray-800 dark:border-gray-700">
+                        <h3 className="font-bold text-base sm:text-lg mb-2 sm:mb-3 dark:text-white">Plate</h3>
                         <div className="space-y-2">
                             {plates.map((plate) => (
                                 <div
@@ -404,8 +404,8 @@ export default function BuilderPage() {
                     </Card>
 
                     {/* Stabilizer */}
-                    <Card className="p-4 dark:bg-gray-800 dark:border-gray-700">
-                        <h3 className="font-bold text-lg mb-3 dark:text-white">Stabilizer</h3>
+                    <Card className="p-3 sm:p-4 dark:bg-gray-800 dark:border-gray-700">
+                        <h3 className="font-bold text-base sm:text-lg mb-2 sm:mb-3 dark:text-white">Stabilizer</h3>
                         <div className="space-y-2">
                             {stabilizers.map((stab) => (
                                 <div
@@ -431,8 +431,8 @@ export default function BuilderPage() {
                     </Card>
 
                     {/* Keycap */}
-                    <Card className="p-4 dark:bg-gray-800 dark:border-gray-700">
-                        <h3 className="font-bold text-lg mb-3 dark:text-white">Keycap</h3>
+                    <Card className="p-3 sm:p-4 dark:bg-gray-800 dark:border-gray-700">
+                        <h3 className="font-bold text-base sm:text-lg mb-2 sm:mb-3 dark:text-white">Keycap</h3>
                         <div className="space-y-2">
                             {keycaps.map((keycap) => (
                                 <div
