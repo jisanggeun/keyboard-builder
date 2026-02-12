@@ -76,6 +76,15 @@ export interface Keycap {
     image_url: string | null;
 }
 
+export interface AllParts {
+    pcbs: PCB[];
+    cases: Case[];
+    plates: Plate[];
+    stabilizers: Stabilizer[];
+    switches: Switch[];
+    keycaps: Keycap[];
+}
+
 // 호환성 검사 결과
 export interface CompatibilityIssue {
     type: "error" | "warning";

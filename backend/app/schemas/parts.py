@@ -1,5 +1,6 @@
 from pydantic import BaseModel
 from typing import Optional
+from typing import List
 from app.models.parts import (
     LayoutType, MountingType, SwitchType,
     StabilizerType, KeycapProfile
@@ -120,6 +121,14 @@ class KeycapResponse(KeycapBase):
     id: int
     class Config:
         from_attributes = True
+
+class AllPartsResponse(BaseModel):
+    pcbs: List[PCBResponse]
+    cases: List[CaseResponse]
+    plates: List[PlateResponse]
+    stabilizers: List[StabilizerResponse]
+    switches: List[SwitchResponse]
+    keycaps: List[KeycapResponse]
 
 '''
 Model = DB Table 구조

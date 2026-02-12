@@ -4,5 +4,6 @@ from app.schemas.parts import (
     PlateBase, PlateCreate, PlateResponse,
     StabilizerBase, StabilizerCreate, StabilizerResponse,
     SwitchBase, SwitchCreate, SwitchResponse,
-    KeycapBase, KeycapCreate, KeycapResponse
+    KeycapBase, KeycapCreate, KeycapResponse,
+    AllPartsResponse
 )

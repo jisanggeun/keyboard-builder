@@ -1,66 +1,10 @@
-import { PCB, Case, Plate, Stabilizer, Switch, Keycap, CompatibilityResult } from "./types";
+import { AllParts } from "./types";
 
 const API_URL = process.env.NEXT_PUBLIC_API_URL || "http://localhost:8000/api";
 
-// PCB 
-export async function getPCBs(): Promise<PCB[]> {
-    const res = await fetch(`${API_URL}/parts/pcbs`);
-    return res.json();
-}
-
-export async function getPCB(id: number): Promise<PCB> {
-    const res = await fetch(`${API_URL}/parts/pcbs/${id}`);
-    return res.json()
-}
-
-// Case
-export async function getCases(): Promise<Case[]> {
-    const res = await fetch(`${API_URL}/parts/cases`);
-    return res.json();
-}
-
-// Plate
-export async function getPlates(): Promise<Plate[]> {
-    const res = await fetch(`${API_URL}/parts/plates`);
-    return res.json();
-}
-
-// Stabilizer
-export async function getStabilizers(): Promise<Stabilizer[]> {
-    const res = await fetch(`${API_URL}/parts/stabilizers`);
-    return res.json();
-}
-
-// Switch
-export async function getSwitches(): Promise<Switch[]> {
-    const res = await fetch(`${API_URL}/parts/switches`);
-    return res.json();
-}
-
-// Keycap
-export async function getKeycaps(): Promise<Keycap[]> {
-    const res = await fetch(`${API_URL}/parts/keycaps`);
-    return res.json();
-}
-
-// 호환성 검사
-export async function checkCompatibility(
-    pcbId?: number,
-    caseId?: number,
-    plateId?: number,
-    switchId?: number,
-    keycapId?: number
-): Promise<CompatibilityResult> {
-    const params = new URLSearchParams();
-    if(pcbId) params.append("pcb_id", pcbId.toString());
-    if(caseId) params.append("case_id", caseId.toString());
-    if(plateId) params.append("plate_id", plateId.toString());
-    if(switchId) params.append("switch_id", switchId.toString());
-    if(keycapId) params.append("keycap_id", keycapId.toString());
-
-    const res = await fetch(`${API_URL}/parts/compatibility/check?${params}`, {
-        method: "POST",
-    });
+// PCB, Case, Switch, Plate, Stabilizer, Keycap 
+export async function getAllParts(): Promise<AllParts> {
+    const res = await fetch(`${API_URL}/parts/all`);
     return res.json();
 }
 

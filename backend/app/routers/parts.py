@@ -1,16 +1,27 @@
 from fastapi import APIRouter, Depends, HTTPException
 from sqlalchemy.orm import Session
 from typing import List
-
 from app.database import get_db
 from app.models import PCB, Case, Plate, Stabilizer, Switch, Keycap
 from app.schemas import (
     PCBResponse, CaseResponse, PlateResponse,
-    StabilizerResponse, SwitchResponse, KeycapResponse
+    StabilizerResponse, SwitchResponse, KeycapResponse,
+    AllPartsResponse
 )
 from app.services.compatibility import CompatibilityService
 
 router = APIRouter(prefix="/api/parts", tags=["parts"])
+
+@router.get("/all", response_model=AllPartsResponse)
+def get_all_parts(db: Session=Depends(get_db)):
+    return {
+        "pcbs": db.query(PCB).all(),
+        "cases": db.query(Case).all(),
+        "plates": db.query(Plate).all(),
+        "stabilizers": db.query(Stabilizer).all(),
+        "switches": db.query(Switch).all(),
+        "keycaps": db.query(Keycap).all(),
+    }
 
 # PCB
 @router.get("/pcbs", response_model=List[PCBResponse])
