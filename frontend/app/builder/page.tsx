@@ -3,6 +3,7 @@
 import { useState, useEffect } from "react";
 import { Card } from "@/components/ui/card";
 import { Badge } from "@/components/ui/badge";
+import { ThemeToggle } from "@/components/theme-toggle";
 import {
     PCB, Case, Plate, Stabilizer, Switch, Keycap,
     SelectedParts, CompatibilityResult
@@ -98,34 +99,37 @@ export default function BuilderPage() {
     }, [selected]);
 
     return (
-        <main className="min-h-screen bg-gray-50">
+        <main className="min-h-screen bg-gray-50 dark:bg-gray-900">
             {/* 헤더 */}
-            <header className="bg-white border-b sticky top-0 z-50">
+            <header className="bg-white dark:bg-gray-800 border-b dark:border-gray-700 sticky top-0 z-50">
                 <div className="max-w-6xl mx-auto px-4 py-4 flex items-center justify-between">
                     <div>
-                        <h1 className="text-2xl font-bold text-gray-900">
+                        <h1 className="text-2xl font-bold text-gray-900 dark:text-white">
                             ⌨️ KeyboardBuilder
                         </h1>
-                        <p className="text-gray-500 text-sm">
+                        <p className="text-gray-500 dark:text-gray-400 text-sm">
                             커스텀 키보드 파츠 호환성 검증
                         </p>
                     </div>
-                    <a href="/" className="text-gray-600 hover:text-gray-900 transition">
-                        홈으로
-                    </a>
+                    <div className="flex items-center gap-4">
+                        <ThemeToggle />
+                        <a href="/" className="text-gray-600 dark:text-gray-300 hover:text-gray-900 dark:hover:text-white transition">
+                            홈으로
+                        </a>
+                    </div>
                 </div>
             </header>
 
             <div className="max-w-6xl mx-auto px-4 py-8">
                 {/* 선택한 파츠 요약 */}
-                <Card className="p-6 mb-6">
+                <Card className="p-6 mb-6 dark:bg-gray-800 dark:border-gray-700">
                     <div className="flex items-center justify-between mb-4">
-                        <h2 className="text-lg font-bold mb-4">선택한 파츠</h2>
+                        <h2 className="text-lg font-bold dark:text-white">선택한 파츠</h2>
                         {(selected.pcb || selected.case || selected.plate ||
                             selected.stabilizer || selected.switch || selected.keycap) && (
                                 <button onClick={() => setSelected({
                                     pcb: null, case: null, plate: null,
-                                    stabilizer: null, switch: null, keycap:null
+                                    stabilizer: null, switch: null, keycap: null
                                 })}
                                 className="text-sm text-gray-500 hover:text-red-500 transition"
                             >
@@ -137,94 +141,106 @@ export default function BuilderPage() {
                     <div className="grid grid-cols-2 md:grid-cols-3 lg:grid-cols-6 gap-3">
                         {/* PCB */}
                         <div className={`p-3 rounded-lg border text-center ${
-                            selected.pcb ? "bg-blue-50 border-blue-200" : "bg-gray-50 border-dashed"
+                            selected.pcb 
+                            ? "bg-blue-50 border-blue-200 dark:bg-blue-900/30 dark:border-blue-700" 
+                            : "bg-gray-50 border-dashed dark:bg-gray-700 dark:border-gray-600"
                         }`}>
-                            <p className="text-xs text-gray-500 mb-1">PCB</p>
+                            <p className="text-xs text-gray-500 dark:text-gray-400 mb-1">PCB</p>
                             {selected.pcb ? (
                                 <>
-                                    <p className="font-medium text-sm truncate">{selected.pcb.name}</p>
-                                    <p className="text-xs text-gray-600">${selected.pcb.price}</p>
+                                    <p className="font-medium text-sm truncate dark:text-white">{selected.pcb.name}</p>
+                                    <p className="text-xs text-gray-600 dark:text-gray-400">${selected.pcb.price}</p>
                                 </>
                             ) : (
-                                <p className="text-sm text-gray-400">미선택</p>
+                                <p className="text-sm text-gray-400 dark:text-gray-500">미선택</p>
                             )}
                         </div>
                         
                         {/* Case */}
                         <div className={`p-3 rounded-lg border text-center ${
-                            selected.case ? "bg-blue-50 border-blue-200" : "bg-gray-50 border-dashed"
+                            selected.case 
+                            ? "bg-blue-50 border-blue-200 dark:bg-blue-900/30 dark:border-blue-700" 
+                            : "bg-gray-50 border-dashed dark:bg-gray-700 dark:border-gray-600"
                         }`}>
-                            <p className="text-xs text-gray-500 mb-1">Case</p>
+                            <p className="text-xs text-gray-500 dark:text-gray-400 mb-1">Case</p>
                             {selected.case ? (
                                 <>
-                                    <p className="font-medium text-sm truncate">{selected.case.name}</p>
-                                    <p className="text-xs text-gray-600">${selected.case.price}</p>
+                                    <p className="font-medium text-sm truncate dark:text-white">{selected.case.name}</p>
+                                    <p className="text-xs text-gray-600 dark:text-gray-400">${selected.case.price}</p>
                                 </>
                             ) : (
-                                <p className="text-sm text-gray-400">미선택</p>
+                                <p className="text-sm text-gray-400 dark:text-gray-500">미선택</p>
                             )}
                         </div>
 
                         {/* Switch */}
                         <div className={`p-3 rounded-lg border text-center ${
-                            selected.switch ? "bg-blue-50 border-blue-200" : "bg-gray-50 border-dashed"
+                            selected.switch 
+                            ? "bg-blue-50 border-blue-200 dark:bg-blue-900/30 dark:border-blue-700" 
+                            : "bg-gray-50 border-dashed dark:bg-gray-700 dark:border-gray-600"
                         }`}>
-                            <p className="text-xs text-gray-500 mb-1">Switch</p>
+                            <p className="text-xs text-gray-500 dark:text-gray-400 mb-1">Switch</p>
                             {selected.switch ? (
                                 <>
-                                    <p className="font-medium text-sm truncate">{selected.switch.name}</p>
-                                    <p className="text-xs text-gray-600">
+                                    <p className="font-medium text-sm truncate dark:text-white">{selected.switch.name}</p>
+                                    <p className="text-xs text-gray-600 dark:text-gray-400">
                                         ${selected.switch.price} x {selected.pcb ? getSwitchCount(selected.pcb.layout) + "개" : "?개"}
                                     </p>
                                 </>
                             ) : (
-                                <p className="text-sm text-gray-400">미선택</p>
+                                <p className="text-sm text-gray-400 dark:text-gray-500">미선택</p>
                             )}
                         </div>
 
                         {/* Plate */}
                         <div className={`p-3 rounded-lg border text-center ${
-                            selected.plate ? "bg-blue-50 border-blue-200" : "bg-gray-50 border-dashed"
+                            selected.plate 
+                            ? "bg-blue-50 border-blue-200 dark:bg-blue-900/30 dark:border-blue-700" 
+                            : "bg-gray-50 border-dashed dark:bg-gray-700 dark:border-gray-600"
                         }`}>
-                            <p className="text-xs text-gray-500 mb-1">Plate</p>
+                            <p className="text-xs text-gray-500 dark:text-gray-400 mb-1">Plate</p>
                             {selected.plate ? (
                                 <>
-                                    <p className="font-medium text-sm truncate">{selected.plate.name}</p>
-                                    <p className="text-xs text-gray-600">${selected.plate.price}</p>
+                                    <p className="font-medium text-sm truncate dark:text-white">{selected.plate.name}</p>
+                                    <p className="text-xs text-gray-600 dark:text-gray-400">${selected.plate.price}</p>
                                 </>
                             ) : (
-                                <p className="text-sm text-gray-400">미선택</p>
+                                <p className="text-sm text-gray-400 dark:text-gray-500">미선택</p>
                             )}
                         </div>
 
                         {/* Stabilizer */}
                         <div className={`p-3 rounded-lg border text-center ${
-                            selected.stabilizer ? "bg-blue-50 border-blue-200" : "bg-gray-50 border-dashed"
+                            selected.stabilizer 
+                            ? "bg-blue-50 border-blue-200 dark:bg-blue-900/30 dark:border-blue-700" 
+                            : "bg-gray-50 border-dashed dark:bg-gray-700 dark:border-gray-600"
                         }`}>
-                            <p className="text-xs text-gray-500 mb-1">Stabilizer</p>
+                            <p className="text-xs text-gray-500 dark:text-gray-400 mb-1">Stabilizer</p>
                             {selected.stabilizer ? (
                                 <>
-                                    <p className="font-medium text-sm truncate">{selected.stabilizer.name}</p>
-                                    <p className="text-xs text-gray-600">${selected.stabilizer.price}</p>
+                                    <p className="font-medium text-sm truncate dark:text-white">{selected.stabilizer.name}</p>
+                                    <p className="text-xs text-gray-600 dark:text-gray-400">${selected.stabilizer.price}</p>
                                 </>
                             ) : (
-                                <p className="text-sm text-gray-400">미선택</p>
+                                <p className="text-sm text-gray-400 dark:text-gray-500">미선택</p>
                             )}
 
                         </div>
                             
                         {/* Keycap */}
                         <div className={`p-3 rounded-lg border text-center ${
-                            selected.keycap ? "bg-blue-50 border-blue-200" : "bg-gray-50 border-dashed"
+                            selected.keycap 
+                            ? "bg-blue-50 border-blue-200 dark:bg-blue-900/30 dark:border-blue-700" 
+                            : "bg-gray-50 border-dashed dark:bg-gray-700 dark:border-gray-600"
                         }`}>
-                            <p className="text-xs text-gray-500 mb-1">Keycap</p>
+                            <p className="text-xs text-gray-500 dark:text-gray-400 mb-1">Keycap</p>
                             {selected.keycap ? (
                                 <>
-                                    <p className="font-medium text-sm truncate">{selected.keycap.name}</p>
-                                    <p className="text-xs text-gray-600">${selected.keycap.price}</p>
+                                    <p className="font-medium text-sm truncate dark:text-white">{selected.keycap.name}</p>
+                                    <p className="text-xs text-gray-600 dark:text-gray-400">${selected.keycap.price}</p>
                                 </>
                             ) : (
-                                <p className="text-sm text-gray-400">미선택</p>
+                                <p className="text-sm text-gray-400 dark:text-gray-500">미선택</p>
                             )}
                         </div>
                     </div>
@@ -232,8 +248,8 @@ export default function BuilderPage() {
                     {/* 총 가격 */}
                     {(selected.pcb || selected.case || selected.plate ||
                         selected.stabilizer || selected.switch || selected.keycap) && (
-                            <div className="mt-4 pt-4 border-t flex justify-between items-center">
-                                <span className="text-gray-600">총 예상 가격</span>
+                            <div className="mt-4 pt-4 border-t dark:border-gray-700 flex justify-between items-center">
+                                <span className="text-gray-600 dark:text-gray-400">총 예상 가격</span>
                                 <span className="text-xl font-bold text-blue-600">
                                     ${(
                                         (selected.pcb?.price || 0) +
@@ -253,16 +269,20 @@ export default function BuilderPage() {
                     {compatibility && (
                         <div className={`p-4 rounded-lg ${
                             compatibility.compatible
-                            ? "bg-green-50 border border-green-200"
-                            : "bg-red-50 border border-red-200"
+                            ? "bg-green-50 border border-green-200 dark:bg-green-900/30 dark:border-green-700"
+                            : "bg-red-50 border border-red-200 dark:bg-red-900/30 dark:border-red-700"
                         }`}>
                             <p className={`font-medium ${
-                                compatibility.compatible ? "text-green-800" : "text-red-800"
+                                compatibility.compatible 
+                                ? "text-green-800 dark:text-green-400" 
+                                : "text-red-800 dark:text-red-400"
                             }`}>
-                                {compatibility.compatible ? "모든 파츠 호환" : "파츠 호환성 문제 발생"}
+                                {compatibility.compatible 
+                                ? "모든 파츠 호환" 
+                                : "파츠 호환성 문제 발생"}
                             </p>
                             {compatibility.issues.map((issue, i) => (
-                                <p key={i} className="text-red-600 text-sm mt-1">
+                                <p key={i} className="text-red-600 dark:text-red-400 text-sm mt-1">
                                     {issue.message}
                                 </p>
                             ))}
@@ -272,8 +292,8 @@ export default function BuilderPage() {
                 {/* 파츠 선택 그리드 */}
                 <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
                     {/* PCB */}
-                    <Card className="p-4">
-                        <h3 className="font-bold text-lg mb-3">PCB</h3>
+                    <Card className="p-4 dark:bg-gray-800 dark:border-gray-700">
+                        <h3 className="font-bold text-lg mb-3 dark:text-white">PCB</h3>
                         <div className="space-y-2">
                             {pcbs.map((pcb) => (
                                 <div 
@@ -285,11 +305,11 @@ export default function BuilderPage() {
                                     className={`p-3 rounded-lg cursor-pointer border transition-all duration-200 
                                         hover:shadow-md hover:-translate-y-1 ${
                                         selected.pcb?.id === pcb.id
-                                        ? "border-blue-500 bg-blue-50 shadow-md"
-                                        : "border-gray-200 hover:border-gray-300"
+                                        ? "border-blue-500 bg-blue-50 dark:bg-blue-900/30 dark:border-blue-400 shadow-md"
+                                        : "border-gray-200 dark:border-gray-600 hover:border-gray-300 dark:hover:border-gray-500"
                                     }`}
                                 >
-                                    <p className="font-medium">{pcb.name}</p>
+                                    <p className="font-medium dark:text-white">{pcb.name}</p>
                                     <div className="flex gap-1 mt-1">
                                         <Badge variant="secondary">{pcb.layout}</Badge>
                                         <Badge variant="secondary">{pcb.mounting_type}</Badge>
@@ -300,8 +320,8 @@ export default function BuilderPage() {
                     </Card> 
 
                     {/* Case */}
-                    <Card className="p-4">
-                        <h3 className="font-bold text-lg mb-3">Case</h3>
+                    <Card className="p-4 dark:bg-gray-800 dark:border-gray-700">
+                        <h3 className="font-bold text-lg mb-3 dark:text-white">Case</h3>
                         <div className="space-y-2">
                             {cases.map((c) => (
                                 <div
@@ -313,11 +333,11 @@ export default function BuilderPage() {
                                     className={`p-3 rounded-lg cursor-pointer border transition-all duration-200 
                                         hover:shadow-md hover:-translate-y-1 ${
                                         selected.case?.id === c.id
-                                        ? "border-blue-500 bg-blue-50 shadow-md"
-                                        : "border-gray-200 hover:border-gray-300"
+                                        ? "border-blue-500 bg-blue-50 dark:bg-blue-900/30 dark:border-blue-400 shadow-md"
+                                        : "border-gray-200 dark:border-gray-600 hover:border-gray-300 dark:hover:border-gray-500"
                                     }`}
                                 >
-                                    <p className="font-medium">{c.name}</p>
+                                    <p className="font-medium dark:text-white">{c.name}</p>
                                     <div className="flex gap-1 mt-1">
                                         <Badge variant="secondary">{c.layout}</Badge>
                                         <Badge variant="secondary">{c.mounting_type}</Badge>
@@ -328,8 +348,8 @@ export default function BuilderPage() {
                     </Card>
 
                     {/* Switch */}
-                    <Card className="p-4">
-                        <h3 className="font-bold text-lg mb-3">Switch</h3>
+                    <Card className="p-4 dark:bg-gray-800 dark:border-gray-700">
+                        <h3 className="font-bold text-lg mb-3 dark:text-white">Switch</h3>
                         <div className="space-y-2">
                             {switches.map((sw) => (
                                 <div
@@ -341,14 +361,14 @@ export default function BuilderPage() {
                                     className={`p-3 rounded-lg cursor-pointer border transition-all duration-200 
                                         hover:shadow-md hover:-translate-y-1 ${
                                         selected.switch?.id === sw.id
-                                        ? "border-blue-500 bg-blue-50 shadow-md"
-                                        : "border-gray-200 hover:border-gray-300"
+                                        ? "border-blue-500 bg-blue-50 dark:bg-blue-900/30 dark:border-blue-400 shadow-md"
+                                        : "border-gray-200 dark:border-gray-600 hover:border-gray-300 dark:hover:border-gray-500"
                                     }`}
                                 >
-                                    <p className="font-medium">{sw.name}</p>
+                                    <p className="font-medium dark:text-white">{sw.name}</p>
                                     <div className="flex gap-1 mt-1">
                                         <Badge variant="secondary">{sw.switch_type}</Badge>
-                                        {sw.tactile && <Badge variant="outline">Tacttile</Badge>}
+                                        {sw.tactile && <Badge variant="secondary">Tactile</Badge>}
                                     </div>
                                 </div>
                             ))}
@@ -356,8 +376,8 @@ export default function BuilderPage() {
                     </Card>
 
                     {/* Plate */}
-                    <Card className="p-4">
-                        <h3 className="font-bold text-lg mb-3">Plate</h3>
+                    <Card className="p-4 dark:bg-gray-800 dark:border-gray-700">
+                        <h3 className="font-bold text-lg mb-3 dark:text-white">Plate</h3>
                         <div className="space-y-2">
                             {plates.map((plate) => (
                                 <div
@@ -369,11 +389,11 @@ export default function BuilderPage() {
                                     className={`p-3 rounded-lg cursor-pointer border transition-all duration-200 
                                         hover:shadow-md hover:-translate-y-1 ${
                                         selected.plate?.id === plate.id
-                                        ? "border-blue-500 bg-blue-50 shadow-md"
-                                        : "border-gray-200 hover:border-gray-300"
+                                        ? "border-blue-500 bg-blue-50 dark:bg-blue-900/30 dark:border-blue-400 shadow-md"
+                                        : "border-gray-200 dark:border-gray-600 hover:border-gray-300 dark:hover:border-gray-500"
                                     }`}
                                 >
-                                    <p className="font-medium">{plate.name}</p>
+                                    <p className="font-medium dark:text-white">{plate.name}</p>
                                     <div className="flex gap-1 mt-1">
                                         <Badge variant="secondary">{plate.layout}</Badge>
                                         <Badge variant="secondary">{plate.material}</Badge>
@@ -384,8 +404,8 @@ export default function BuilderPage() {
                     </Card>
 
                     {/* Stabilizer */}
-                    <Card className="p-4">
-                        <h3 className="font-bold text-lg mb-3">Stabilizer</h3>
+                    <Card className="p-4 dark:bg-gray-800 dark:border-gray-700">
+                        <h3 className="font-bold text-lg mb-3 dark:text-white">Stabilizer</h3>
                         <div className="space-y-2">
                             {stabilizers.map((stab) => (
                                 <div
@@ -397,11 +417,11 @@ export default function BuilderPage() {
                                     className={`p-3 rounded-lg cursor-pointer border transition-all duration-200 
                                         hover:shadow-md hover:-translate-y-1 ${
                                         selected.stabilizer?.id === stab.id
-                                        ? "border-blue-500 bg-blue-50 shadow-md"
-                                        : "border-gray-200 hover:border-gray-300"
+                                        ? "border-blue-500 bg-blue-50 dark:bg-blue-900/30 dark:border-blue-400 shadow-md"
+                                        : "border-gray-200 dark:border-gray-600 hover:border-gray-300 dark:hover:border-gray-500"
                                     }`}
                                 >
-                                    <p className="font-medium">{stab.name}</p>
+                                    <p className="font-medium dark:text-white">{stab.name}</p>
                                     <div className="flex gap-1 mt-1">
                                         <Badge variant="secondary">{stab.stab_type}</Badge>
                                     </div>
@@ -411,8 +431,8 @@ export default function BuilderPage() {
                     </Card>
 
                     {/* Keycap */}
-                    <Card className="p-4">
-                        <h3 className="font-bold text-lg mb-3">Keycap</h3>
+                    <Card className="p-4 dark:bg-gray-800 dark:border-gray-700">
+                        <h3 className="font-bold text-lg mb-3 dark:text-white">Keycap</h3>
                         <div className="space-y-2">
                             {keycaps.map((keycap) => (
                                 <div
@@ -424,11 +444,11 @@ export default function BuilderPage() {
                                     className={`p-3 rounded-lg cursor-pointer border transition-all duration-200 
                                         hover:shadow-md hover:-translate-y-1 ${
                                         selected.keycap?.id === keycap.id
-                                        ? "border-blue-500 bg-blue-50 shadow-md"
-                                        : "border-gray-200 hover:border-gray-300"
+                                        ? "border-blue-500 bg-blue-50 dark:bg-blue-900/30 dark:border-blue-400 shadow-md"
+                                        : "border-gray-200 dark:border-gray-600 hover:border-gray-300 dark:hover:border-gray-500"
                                     }`}
                                 >
-                                    <p className="font-medium">{keycap.name}</p>
+                                    <p className="font-medium dark:text-white">{keycap.name}</p>
                                     <div className="flex gap-1 mt-1">
                                         <Badge variant="secondary">{keycap.profile}</Badge>
                                         <Badge variant="secondary">{keycap.material}</Badge>
