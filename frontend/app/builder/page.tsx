@@ -34,6 +34,18 @@ export default function BuilderPage() {
     // 호환성 결과
     const [compatibility, setCompatibility] = useState<CompatibilityResult | null>(null);
 
+    // PCB 사이즈 별 스위치 가격
+    const getSwitchCount = (layout: string | undefined): number | null => {
+        switch (layout) {
+            case "60%": return 61;
+            case "65%": return 68;
+            case "75%": return 84;
+            case "TKL": return 87;
+            case "Full": return 104;
+            default: return null;
+        }
+    };
+
     // 파츠 목록 가져오기
     useEffect(() => {
         async function loadParts() {
@@ -105,6 +117,137 @@ export default function BuilderPage() {
             </header>
 
             <div className="max-w-6xl mx-auto px-4 py-8">
+                {/* 선택한 파츠 요약 */}
+                <Card className="p-6 mb-6">
+                    <div className="flex items-center justify-between mb-4">
+                        <h2 className="text-lg font-bold mb-4">선택한 파츠</h2>
+                        {(selected.pcb || selected.case || selected.plate ||
+                            selected.stabilizer || selected.switch || selected.keycap) && (
+                                <button onClick={() => setSelected({
+                                    pcb: null, case: null, plate: null,
+                                    stabilizer: null, switch: null, keycap:null
+                                })}
+                                className="text-sm text-gray-500 hover:text-red-500 transition"
+                            >
+                                전체 초기화
+                            </button>
+                            )
+                        }
+                    </div>
+                    <div className="grid grid-cols-2 md:grid-cols-3 lg:grid-cols-6 gap-3">
+                        {/* PCB */}
+                        <div className={`p-3 rounded-lg border text-center ${
+                            selected.pcb ? "bg-blue-50 border-blue-200" : "bg-gray-50 border-dashed"
+                        }`}>
+                            <p className="text-xs text-gray-500 mb-1">PCB</p>
+                            {selected.pcb ? (
+                                <>
+                                    <p className="font-medium text-sm truncate">{selected.pcb.name}</p>
+                                    <p className="text-xs text-gray-600">${selected.pcb.price}</p>
+                                </>
+                            ) : (
+                                <p className="text-sm text-gray-400">미선택</p>
+                            )}
+                        </div>
+                        
+                        {/* Case */}
+                        <div className={`p-3 rounded-lg border text-center ${
+                            selected.case ? "bg-blue-50 border-blue-200" : "bg-gray-50 border-dashed"
+                        }`}>
+                            <p className="text-xs text-gray-500 mb-1">Case</p>
+                            {selected.case ? (
+                                <>
+                                    <p className="font-medium text-sm truncate">{selected.case.name}</p>
+                                    <p className="text-xs text-gray-600">${selected.case.price}</p>
+                                </>
+                            ) : (
+                                <p className="text-sm text-gray-400">미선택</p>
+                            )}
+                        </div>
+
+                        {/* Switch */}
+                        <div className={`p-3 rounded-lg border text-center ${
+                            selected.switch ? "bg-blue-50 border-blue-200" : "bg-gray-50 border-dashed"
+                        }`}>
+                            <p className="text-xs text-gray-500 mb-1">Switch</p>
+                            {selected.switch ? (
+                                <>
+                                    <p className="font-medium text-sm truncate">{selected.switch.name}</p>
+                                    <p className="text-xs text-gray-600">
+                                        ${selected.switch.price} x {selected.pcb ? getSwitchCount(selected.pcb.layout) + "개" : "?개"}
+                                    </p>
+                                </>
+                            ) : (
+                                <p className="text-sm text-gray-400">미선택</p>
+                            )}
+                        </div>
+
+                        {/* Plate */}
+                        <div className={`p-3 rounded-lg border text-center ${
+                            selected.plate ? "bg-blue-50 border-blue-200" : "bg-gray-50 border-dashed"
+                        }`}>
+                            <p className="text-xs text-gray-500 mb-1">Plate</p>
+                            {selected.plate ? (
+                                <>
+                                    <p className="font-medium text-sm truncate">{selected.plate.name}</p>
+                                    <p className="text-xs text-gray-600">${selected.plate.price}</p>
+                                </>
+                            ) : (
+                                <p className="text-sm text-gray-400">미선택</p>
+                            )}
+                        </div>
+
+                        {/* Stabilizer */}
+                        <div className={`p-3 rounded-lg border text-center ${
+                            selected.stabilizer ? "bg-blue-50 border-blue-200" : "bg-gray-50 border-dashed"
+                        }`}>
+                            <p className="text-xs text-gray-500 mb-1">Stabilizer</p>
+                            {selected.stabilizer ? (
+                                <>
+                                    <p className="font-medium text-sm truncate">{selected.stabilizer.name}</p>
+                                    <p className="text-xs text-gray-600">${selected.stabilizer.price}</p>
+                                </>
+                            ) : (
+                                <p className="text-sm text-gray-400">미선택</p>
+                            )}
+
+                        </div>
+                            
+                        {/* Keycap */}
+                        <div className={`p-3 rounded-lg border text-center ${
+                            selected.keycap ? "bg-blue-50 border-blue-200" : "bg-gray-50 border-dashed"
+                        }`}>
+                            <p className="text-xs text-gray-500 mb-1">Keycap</p>
+                            {selected.keycap ? (
+                                <>
+                                    <p className="font-medium text-sm truncate">{selected.keycap.name}</p>
+                                    <p className="text-xs text-gray-600">${selected.keycap.price}</p>
+                                </>
+                            ) : (
+                                <p className="text-sm text-gray-400">미선택</p>
+                            )}
+                        </div>
+                    </div>
+                    
+                    {/* 총 가격 */}
+                    {(selected.pcb || selected.case || selected.plate ||
+                        selected.stabilizer || selected.switch || selected.keycap) && (
+                            <div className="mt-4 pt-4 border-t flex justify-between items-center">
+                                <span className="text-gray-600">총 예상 가격</span>
+                                <span className="text-xl font-bold text-blue-600">
+                                    ${(
+                                        (selected.pcb?.price || 0) +
+                                        (selected.case?.price || 0) + 
+                                        (selected.plate?.price || 0) +
+                                        (selected.stabilizer?.price || 0) + 
+                                        (selected.pcb && selected.switch ? (selected.switch.price || 0) * (getSwitchCount(selected.pcb.layout) || 0) : 0) +
+                                        (selected.keycap?.price || 0)
+                                    ).toFixed(2)}
+                                </span>
+                            </div>
+                        )
+                    }
+                </Card>
                 {/* 파츠 호환 상태 */}
                 <div className="mb-8">
                     {compatibility && (
