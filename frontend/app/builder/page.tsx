@@ -4,6 +4,7 @@ import { useState, useEffect } from "react";
 import { Card } from "@/components/ui/card";
 import { Badge } from "@/components/ui/badge";
 import { ThemeToggle } from "@/components/theme-toggle";
+import { Keyboard3D } from "@/components/keyboard-3d"
 import {
     PCB, Case, Plate, Stabilizer, Switch, Keycap,
     SelectedParts, CompatibilityResult
@@ -264,6 +265,11 @@ export default function BuilderPage() {
                         )
                     }
                 </Card>
+                {/* 3D 미리보기 */}
+                <div className="mb-6">
+                    <h2 className="text-base sm:text-lg font-bold mb-3 dark:text-white">3D 미리보기</h2>
+                    <Keyboard3D selected={selected} />
+                </div>
                 {/* 파츠 호환 상태 */}
                 <div className="mb-8">
                     {compatibility && (
