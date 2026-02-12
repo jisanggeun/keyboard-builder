@@ -88,9 +88,19 @@ export default function BuilderPage() {
     return (
         <main className="min-h-screen bg-gray-50">
             {/* 헤더 */}
-            <header className="bg-white border=b">
-                <div className="max-w-6xl mx-auto px-4 py-4">
-                    <h1 className="text-2xl font-bold text-gray-900">KeyboardBuilder</h1>
+            <header className="bg-white border-b sticky top-0 z-50">
+                <div className="max-w-6xl mx-auto px-4 py-4 flex items-center justify-between">
+                    <div>
+                        <h1 className="text-2xl font-bold text-gray-900">
+                            ⌨️ KeyboardBuilder
+                        </h1>
+                        <p className="text-gray-500 text-sm">
+                            커스텀 키보드 파츠 호환성 검증
+                        </p>
+                    </div>
+                    <a href="/" className="text-gray-600 hover:text-gray-900 transition">
+                        홈으로
+                    </a>
                 </div>
             </header>
 
@@ -129,9 +139,10 @@ export default function BuilderPage() {
                                         ...selected, 
                                         pcb: selected.pcb?.id === pcb.id ? null : pcb 
                                     })}
-                                    className={`p-3 rounded-lg cursor-pointer border transition ${
+                                    className={`p-3 rounded-lg cursor-pointer border transition-all duration-200 
+                                        hover:shadow-md hover:-translate-y-1 ${
                                         selected.pcb?.id === pcb.id
-                                        ? "border-blue-500 bg-blue-50"
+                                        ? "border-blue-500 bg-blue-50 shadow-md"
                                         : "border-gray-200 hover:border-gray-300"
                                     }`}
                                 >
@@ -156,9 +167,10 @@ export default function BuilderPage() {
                                         ...selected, 
                                         case: selected.case?.id === c.id ? null : c 
                                     })}
-                                    className={`p-3 rounded-lg cursor-pointer border transition ${
+                                    className={`p-3 rounded-lg cursor-pointer border transition-all duration-200 
+                                        hover:shadow-md hover:-translate-y-1 ${
                                         selected.case?.id === c.id
-                                        ? "border-blue-500 bg-blue-50"
+                                        ? "border-blue-500 bg-blue-50 shadow-md"
                                         : "border-gray-200 hover:border-gray-300"
                                     }`}
                                 >
@@ -183,9 +195,10 @@ export default function BuilderPage() {
                                         ...selected, 
                                         switch: selected.switch?.id === sw.id ? null : sw 
                                     })}
-                                    className={`p-3 rounded-lg cursor-pointer border transition ${
+                                    className={`p-3 rounded-lg cursor-pointer border transition-all duration-200 
+                                        hover:shadow-md hover:-translate-y-1 ${
                                         selected.switch?.id === sw.id
-                                        ? "border-blue-500 bg-blue-50"
+                                        ? "border-blue-500 bg-blue-50 shadow-md"
                                         : "border-gray-200 hover:border-gray-300"
                                     }`}
                                 >
@@ -210,9 +223,10 @@ export default function BuilderPage() {
                                         ...selected, 
                                         plate: selected.plate?.id === plate.id ? null : plate
                                     })}
-                                    className={`p-3 rounded-lg cursor-pointer border transition ${
+                                    className={`p-3 rounded-lg cursor-pointer border transition-all duration-200 
+                                        hover:shadow-md hover:-translate-y-1 ${
                                         selected.plate?.id === plate.id
-                                        ? "border-blue-500 bg-blue-50"
+                                        ? "border-blue-500 bg-blue-50 shadow-md"
                                         : "border-gray-200 hover:border-gray-300"
                                     }`}
                                 >
@@ -237,9 +251,10 @@ export default function BuilderPage() {
                                         ...selected, 
                                         stabilizer: selected.stabilizer?.id === stab.id ? null : stab 
                                     })}
-                                    className={`p-3 rounded-lg cursor-pointer border transition ${
+                                    className={`p-3 rounded-lg cursor-pointer border transition-all duration-200 
+                                        hover:shadow-md hover:-translate-y-1 ${
                                         selected.stabilizer?.id === stab.id
-                                        ? "border-blue-500 bg-blue-50"
+                                        ? "border-blue-500 bg-blue-50 shadow-md"
                                         : "border-gray-200 hover:border-gray-300"
                                     }`}
                                 >
@@ -263,9 +278,10 @@ export default function BuilderPage() {
                                         ...selected, 
                                         keycap: selected.keycap?.id === keycap.id ? null : keycap
                                     })}
-                                    className={`p-3 rounded-lg cursor-pointer border transition ${
+                                    className={`p-3 rounded-lg cursor-pointer border transition-all duration-200 
+                                        hover:shadow-md hover:-translate-y-1 ${
                                         selected.keycap?.id === keycap.id
-                                        ? "border-blue-500 bg-blue-50"
+                                        ? "border-blue-500 bg-blue-50 shadow-md"
                                         : "border-gray-200 hover:border-gray-300"
                                     }`}
                                 >
