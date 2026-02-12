@@ -56,6 +56,15 @@ class CompatibilityService:
                     "parts": ["PCB", "Switch"],
                     "message": f"스위치 타입 일치하지 않음: PCB({pcb.layout.value}) vs Switch({switch.switch_type.value})"
                 })
+
+        # Plate <--> Case 검사
+        if plate and case:
+            if plate.layout != case.layout:
+                issues.append({
+                    "type": "error",
+                    "parts": ["Plate", "Case"],
+                    "message": f"레이아웃 일치하지 않음: Plate({plate.layout.value}) vs Case({case.layout.value})"
+                })
         
         # Plate <--> Switch 검사
         if plate and switch:
@@ -63,7 +72,7 @@ class CompatibilityService:
                 issues.append({
                     "type": "error",
                     "parts": ["Plate", "Switch"],
-                    "message": f"스위치 타입 일치하지 않음: Plate({plate.switch_type.value}) vs Swtich({switch.switch_type.value})"
+                    "message": f"스위치 타입 일치하지 않음: Plate({plate.switch_type.value}) vs Switch({switch.switch_type.value})"
                 })
 
         # Switch <--> Keycap 검사
@@ -86,6 +95,7 @@ class CompatibilityService:
 - PCB <--> Case: layout, mounting_type 일치
 - PCB <--> Plate: layout 일치
 - PCB <--> Switch: switch_type 일치
+- Plate <--> Case: layout 일치
 - Plate <--> Switch: switch_type 일치
 - Switch <--> Keycap: stem_type 일치
 '''
