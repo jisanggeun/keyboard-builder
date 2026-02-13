@@ -1,6 +1,7 @@
 "use client";
 
 import { useState, useMemo } from "react";
+import Link from "next/link";
 import { Card } from "@/components/ui/card";
 import { Badge } from "@/components/ui/badge";
 import { ThemeToggle } from "@/components/theme-toggle";
@@ -8,8 +9,11 @@ import { Keyboard3D } from "@/components/keyboard-3d"
 import { SelectedParts } from "@/lib/types";
 import { checkCompatibilityLocal } from "@/lib/compatibility";
 import { useAllParts } from "@/lib/hooks";
+import { useAuth } from "@/lib/auth-context";
 
 export default function BuilderPage() {
+    const { user, logout, isLoading } = useAuth();
+
     // 파츠 목록
     const { data } = useAllParts();
     const pcbs = data?.pcbs ?? [];
@@ -68,6 +72,28 @@ export default function BuilderPage() {
                     </div>
                     <div className="flex items-center gap-2 sm:gap-4">
                         <ThemeToggle />
+                        {!isLoading && (
+                            user ? (
+                                <div className="flex items-center gap-2">
+                                    <span className="text-xs sm:text-sm text-gray-600 dark:text-gray-300">
+                                        {user.nickname || user.email}
+                                    </span>
+                                    <button
+                                        onClick={logout}
+                                        className="text-xs sm:text-sm text-gray-500 hover:text-red-500 transition"
+                                    >
+                                        로그아웃
+                                    </button>
+                                </div>
+                            ) : (
+                                <Link
+                                    href="/login"
+                                    className="text-xs sm:text-sm bg-gray-900 dark:bg-blue-600 text-white px-3 py-1.5 rounded-lg hover:bg-gray-800 dark:hover:bg-blue-700 transition"
+                                >
+                                    로그인
+                                </Link>
+                            )
+                        )}
                         <a href="/" className="text-sm sm:text-base text-gray-600 dark:text-gray-300 hover:text-gray-900 dark:hover:text-white transition">
                             홈으로
                         </a>
