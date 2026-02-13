@@ -4,6 +4,7 @@ from pydantic_settings import BaseSettings
 
 class Settings(BaseSettings):
     database_url: str = "postgresql://postgres:postgres@localhost:5432/keyboard_builder"
+    secret_key: str = "dev-secret-key-change-in-production"
 
     class Config:
         env_file = ".env" # .env 파일에서 환경변수 읽기
