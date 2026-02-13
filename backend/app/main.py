@@ -1,8 +1,8 @@
 from fastapi import FastAPI
 from fastapi.middleware.cors import CORSMiddleware
 from app.database import engine, Base
-from app.models import PCB, Case, Plate, Stabilizer, Switch, Keycap
-from app.routers import parts_router
+from app.models import PCB, Case, Plate, Stabilizer, Switch, Keycap, User
+from app.routers import parts_router, auth_router
 
 # 서버 시작 시 테이블 생성
 Base.metadata.create_all(bind=engine)
@@ -24,6 +24,7 @@ app.add_middleware(
 )
 
 app.include_router(parts_router)
+app.include_router(auth_router)
 
 @app.get("/")
 def root():

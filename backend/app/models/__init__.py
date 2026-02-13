@@ -1,6 +1,7 @@
 from app.models.parts import PCB, Case, Plate, Stabilizer, Switch, Keycap
+from app.models.user import User
 
-__all__ = ["PCB", "Case", "Plate", "Stabilizer", "Switch", "Keycap"]
+__all__ = ["PCB", "Case", "Plate", "Stabilizer", "Switch", "Keycap", "User"]
 
 '''
 만드는 이유
