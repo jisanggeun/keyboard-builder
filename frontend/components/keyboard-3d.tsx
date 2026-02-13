@@ -215,25 +215,25 @@ function Stabilizer({ position, widthU, stabName }: {
 // 행별 스컬프팅 설정 (높이 차이 미묘, 기울기로 스컬프팅)
 const ROW_SCULPT: Record<string, { height: number; tilt: number }[]> = {
     Cherry: [
-        { height: 0.38, tilt: -0.15 },  // R1 (숫자행)
-        { height: 0.34, tilt: -0.08 },  // R2 (QWERTY)
+        { height: 0.38, tilt: -0.06 },  // R1 (숫자행)
+        { height: 0.34, tilt: -0.03 },  // R2 (QWERTY)
         { height: 0.32, tilt: 0 },       // R3 (홈행)
-        { height: 0.33, tilt: 0.06 },    // R4 (하단)
-        { height: 0.32, tilt: 0.10 },    // R5 (스페이스)
+        { height: 0.33, tilt: 0.02 },    // R4 (하단)
+        { height: 0.32, tilt: 0.04 },    // R5 (스페이스)
     ],
     OEM: [
-        { height: 0.42, tilt: -0.18 },
-        { height: 0.38, tilt: -0.10 },
+        { height: 0.42, tilt: -0.07 },
+        { height: 0.38, tilt: -0.04 },
         { height: 0.36, tilt: 0 },
-        { height: 0.37, tilt: 0.08 },
-        { height: 0.36, tilt: 0.12 },
+        { height: 0.37, tilt: 0.03 },
+        { height: 0.36, tilt: 0.05 },
     ],
     SA: [
-        { height: 0.56, tilt: -0.18 },
-        { height: 0.50, tilt: -0.10 },
+        { height: 0.56, tilt: -0.07 },
+        { height: 0.50, tilt: -0.04 },
         { height: 0.46, tilt: 0 },
-        { height: 0.46, tilt: 0.10 },
-        { height: 0.44, tilt: 0.12 },
+        { height: 0.46, tilt: 0.04 },
+        { height: 0.44, tilt: 0.05 },
     ],
     DSA: [
         { height: 0.30, tilt: 0 },
@@ -243,25 +243,26 @@ const ROW_SCULPT: Record<string, { height: number; tilt: number }[]> = {
         { height: 0.30, tilt: 0 },
     ],
     MT3: [
-        { height: 0.54, tilt: -0.20 },
-        { height: 0.48, tilt: -0.10 },
+        { height: 0.54, tilt: -0.08 },
+        { height: 0.48, tilt: -0.04 },
         { height: 0.44, tilt: 0 },
-        { height: 0.44, tilt: 0.10 },
-        { height: 0.42, tilt: 0.12 },
+        { height: 0.44, tilt: 0.04 },
+        { height: 0.42, tilt: 0.05 },
     ],
 }
 
 // 개별 Keycap 컴포넌트
-function Key({ position, width = 0.92, color, opacity = 1, profile = "Cherry", row = 2 }: {
+function Key({ position, width = 0.92, depth = 0.78, color, opacity = 1, profile = "Cherry", row = 2 }: {
     position: [number, number, number]
     width?: number
+    depth?: number
     color: string
     opacity?: number
     profile?: string
     row?: number  // 0~4 (위에서 아래로)
 }) {
     const botW = width - 0.14
-    const botD = 0.78
+    const botD = depth
     const taper = 0.12  // 위가 이만큼 좁아짐
     const topW = botW - taper
     const topD = botD - taper
@@ -310,44 +311,47 @@ function Key({ position, width = 0.92, color, opacity = 1, profile = "Cherry", r
 }
 
 // 레이아웃별 키 배열 정의
-const LAYOUTS: Record<string, { keys: number[], y: number }[]> = {
+// 양수 >= 1: 키 너비(U), 음수: 갭(절대값 U), 0: 빈 1U 공간(오프셋만 이동)
+// 객체 {w, h}: 세로 2칸 이상 키 (넘패드 +, Enter 등)
+type KeyEntry = number | { w: number; h: number }
+const LAYOUTS: Record<string, { keys: KeyEntry[], y: number }[]> = {
     "60%": [
-        { keys: [1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 2], y: 2 },
-        { keys: [1.5, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1.5], y: 1 },
-        { keys: [1.75, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 2.25], y: 0 },
-        { keys: [2.25, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 2.75], y: -1 },
-        { keys: [1.25, 1.25, 1.25, 6.25, 1.25, 1.25, 1.25, 1.25], y: -2 },
+        { keys: [1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 2], y: 4 },
+        { keys: [1.5, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1.5], y: 3 },
+        { keys: [1.75, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 2.25], y: 2 },
+        { keys: [2.25, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 2.75], y: 1 },
+        { keys: [1.25, 1.25, 1.25, 6.25, 1.25, 1.25, 1.25, 1.25], y: 0 },
     ],
     "65%": [
-        { keys: [1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 2, 1], y: 2 },
-        { keys: [1.5, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1.5, 1], y: 1 },
-        { keys: [1.75, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 2.25, 1], y: 0 },
-        { keys: [2.25, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1.75, 1, 1], y: -1 },
-        { keys: [1.25, 1.25, 1.25, 6.25, 1.25, 1.25, 1, 1, 1], y: -2 },
+        { keys: [1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 2, 1], y: 4 },
+        { keys: [1.5, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1.5, 1], y: 3 },
+        { keys: [1.75, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 2.25, 1], y: 2 },
+        { keys: [2.25, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1.75, 1, 1], y: 1 },
+        { keys: [1.25, 1.25, 1.25, 6.25, 1.25, 1.25, -0.5, 1, 1, 1], y: 0 },
     ],
     "75%": [
-        { keys: [1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1], y: 3 },
-        { keys: [1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 2, 1], y: 2 },
-        { keys: [1.5, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1.5, 1], y: 1 },
-        { keys: [1.75, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 2.25, 1], y: 0 },
-        { keys: [2.25, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1.75, 1, 1], y: -1 },
-        { keys: [1.25, 1.25, 1.25, 6.25, 1.25, 1.25, 1, 1, 1], y: -2 },
+        { keys: [1, -0.25, 1, 1, 1, 1, -0.25, 1, 1, 1, 1, -0.25, 1, 1, 1, 1, -0.25, 1, 1], y: 5.25 },
+        { keys: [1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 2, 1], y: 4 },
+        { keys: [1.5, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1.5, 1], y: 3 },
+        { keys: [1.75, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 2.25, 1], y: 2 },
+        { keys: [2.25, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1.75, 1], y: 1 },
+        { keys: [1.25, 1.25, 1.25, 6.25, 1.25, 1.25, -0.5, 1, 1, 1], y: 0 },
     ],
     "TKL": [
-        { keys: [1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 0.5, 1, 1, 1], y: 3 },
-        { keys: [1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 2, 0.5, 1, 1, 1], y: 2 },
-        { keys: [1.5, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1.5, 0.5, 1, 1, 1], y: 1 },
-        { keys: [1.75, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 2.25, 0.5, 0, 0, 0], y: 0 },
-        { keys: [2.25, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 2.75, 0.5, 0, 1, 0], y: -1 },
-        { keys: [1.25, 1.25, 1.25, 6.25, 1.25, 1.25, 1.25, 1.25, 0.5, 1, 1, 1], y: -2 },
+        { keys: [1, -1, 1, 1, 1, 1, -0.5, 1, 1, 1, 1, -0.5, 1, 1, 1, 1, -0.25, 1, 1, 1], y: 5.5 },
+        { keys: [1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 2, -0.25, 1, 1, 1], y: 4 },
+        { keys: [1.5, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1.5, -0.25, 1, 1, 1], y: 3 },
+        { keys: [1.75, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 2.25], y: 2 },
+        { keys: [2.25, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 2.75, -0.25, -1, 1, -1], y: 1 },
+        { keys: [1.25, 1.25, 1.25, 6.25, 1.25, 1.25, 1.25, 1.25, -0.25, 1, 1, 1], y: 0 },
     ],
     "Full": [
-        { keys: [1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 0.5, 1, 1, 1, 0.5, 1, 1, 1, 1], y: 3 },
-        { keys: [1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 2, 0.5, 1, 1, 1, 0.5, 1, 1, 1, 1], y: 2 },
-        { keys: [1.5, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1.5, 0.5, 1, 1, 1, 0.5, 1, 1, 1, 1], y: 1 },
-        { keys: [1.75, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 2.25, 0.5, 0, 0, 0, 0.5, 1, 1, 1, 1], y: 0 },
-        { keys: [2.25, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 2.75, 0.5, 0, 1, 0, 0.5, 1, 1, 1, 2], y: -1 },
-        { keys: [1.25, 1.25, 1.25, 6.25, 1.25, 1.25, 1.25, 1.25, 0.5, 1, 1, 1, 0.5, 2, 1, 0], y: -2 },
+        { keys: [1, -1, 1, 1, 1, 1, -0.5, 1, 1, 1, 1, -0.5, 1, 1, 1, 1, -0.25, 1, 1, 1], y: 5.5 },
+        { keys: [1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 2, -0.25, 1, 1, 1, -0.25, 1, 1, 1, 1], y: 4 },
+        { keys: [1.5, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1.5, -0.25, 1, 1, 1, -0.25, 1, 1, 1, {w:1,h:2}], y: 3 },
+        { keys: [1.75, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 2.25, -3.5, 1, 1, 1, -1], y: 2 },
+        { keys: [2.25, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 2.75, -0.25, -1, 1, -1, -0.25, 1, 1, 1, {w:1,h:2}], y: 1 },
+        { keys: [1.25, 1.25, 1.25, 6.25, 1.25, 1.25, 1.25, 1.25, -0.25, 1, 1, 1, -0.25, 2, 1, -1], y: 0 },
     ],
 }
 
@@ -370,34 +374,37 @@ function KeyboardModel({ selected }: Keyboard3DProps) {
       (selected.pcb && selected.plate && pcbLayout !== plateLayout) ||
       (selected.case && selected.plate && caseLayout !== plateLayout)
 
-    // 레이아웃별 너비 계산
-    const getLayoutWidth = () => {
-        const firstRow = rows[0].keys.filter(k => k > 0)
-        return firstRow.reduce((sum, k) => sum + k, 0)
+    // 행 너비 계산 (양수=키, 음수=갭, 0=빈 1U 공간, 객체=세로키)
+    const getRowWidth = (keys: KeyEntry[]) => {
+        let width = 0
+        for (const k of keys) {
+            if (typeof k === "object") width += k.w
+            else if (k === 0) width += 1
+            else if (k < 0) width += Math.abs(k)
+            else width += k
+        }
+        return width
     }
-
-    // Case 크기 계산 (레이아웃 기준)
-    const getCaseWidth = () => {
-        const firstRow = caseRows[0].keys.filter(k => k > 0)
-        return firstRow.reduce((sum, k) => sum + k, 0)
-    }
-
-    // Plate 크기 계산 (레이아웃 기준)
-    const getPlateWidth = () => {
-        const firstRow = plateRows[0].keys.filter(k => k > 0)
-        return firstRow.reduce((sum, k) => sum + k, 0)
+    const getMaxWidth = (layoutRows: { keys: KeyEntry[], y: number }[]) =>
+        Math.max(...layoutRows.map(r => getRowWidth(r.keys)))
+    const getYRange = (layoutRows: { keys: KeyEntry[], y: number }[]) => {
+        const ys = layoutRows.map(r => r.y)
+        return { maxY: Math.max(...ys), minY: Math.min(...ys) }
     }
 
     const keyUnit = 0.92
-    const totalWidth = getLayoutWidth() * keyUnit
+    const totalWidth = getMaxWidth(rows) * keyUnit
+    const { maxY, minY } = getYRange(rows)
 
     // Case 크기
-    const caseWidth = getCaseWidth() * keyUnit
-    const caseDepth = caseRows.length * keyUnit
-    
+    const caseWidth = getMaxWidth(caseRows) * keyUnit
+    const caseYRange = getYRange(caseRows)
+    const caseDepth = (caseYRange.maxY - caseYRange.minY + 1) * keyUnit
+
     // Plate 크기
-    const plateWidth = getPlateWidth() * keyUnit
-    const plateDepth = plateRows.length * keyUnit
+    const plateWidth = getMaxWidth(plateRows) * keyUnit
+    const plateYRange = getYRange(plateRows)
+    const plateDepth = (plateYRange.maxY - plateYRange.minY + 1) * keyUnit
 
     // Case 색상
     const getCaseColor = () => {
@@ -449,8 +456,8 @@ function KeyboardModel({ selected }: Keyboard3DProps) {
     const keycapOpacity = selected.keycap ? 1 : 0.3  // 키캡 미선택 시 반투명
     const keycapProfile = selected.keycap?.profile || "Cherry"
 
-    // 중앙 Y 오프셋 계산
-    const centerYOffset = (rows.length - 1) / 2
+    // 중앙 Y 오프셋 계산 (y값 범위 기반)
+    const centerYOffset = (maxY + minY) / 2
 
     // Case 지오메트리 (bathtub 일체형)
     const caseGeometry = useCaseGeometry(
@@ -499,20 +506,40 @@ function KeyboardModel({ selected }: Keyboard3DProps) {
             )}
 
             {/* Switch + Keycap */}
-            <group position={[-totalWidth / 2, 0.1, centerYOffset * keyUnit]}>
+            <group position={[-totalWidth / 2, 0.1, 0]}>
                 {rows.map((row, rowIndex) => {
                     let xOffset = 0
-                    return row.keys.map((keyWidth, keyIndex) => {
-                        if (keyWidth === 0) {
-                            return null  // 빈 공간
+                    return row.keys.map((entry, keyIndex) => {
+                        // 숫자 값 처리
+                        if (typeof entry === "number") {
+                            if (entry < 0) {
+                                xOffset += Math.abs(entry) * keyUnit  // 갭
+                                return null
+                            }
+                            if (entry === 0) {
+                                xOffset += 1 * keyUnit  // 빈 1U 공간
+                                return null
+                            }
                         }
-                        if (keyWidth === 0.5) {
-                            xOffset += 0.25 * keyUnit  // 작은 갭
-                            return null
-                        }
-                        const x = xOffset + (keyWidth * keyUnit) / 2
-                        xOffset += keyWidth * keyUnit
-                        const z = (row.y - centerYOffset) * keyUnit
+
+                        // 키 너비/높이 추출
+                        const keyW = typeof entry === "object" ? entry.w : entry
+                        const keyH = typeof entry === "object" ? entry.h : 1
+
+                        const x = xOffset + (keyW * keyUnit) / 2
+                        xOffset += keyW * keyUnit
+
+                        // 세로 키: 아래로 확장하므로 z를 (h-1)*0.5만큼 앞으로 이동
+                        const z = (centerYOffset - row.y + (keyH - 1) * 0.5) * keyUnit
+
+                        // 세로 키 깊이: h칸 * keyUnit - 간격 보정
+                        const capDepth = keyH > 1
+                            ? keyH * keyUnit - (keyUnit - 0.78)
+                            : 0.78
+
+                        // 스태빌라이저 판단 (가로 2U 이상 또는 세로 2U 이상)
+                        const needsStab = keyW >= 2 || keyH >= 2
+
                         return (
                             <group key={`${rowIndex}-${keyIndex}`}>
                                 {/* Plate 스위치 컷아웃 (구멍 표현) */}
@@ -523,10 +550,10 @@ function KeyboardModel({ selected }: Keyboard3DProps) {
                                     </mesh>
                                 )}
                                 {/* Stabilizer (2u 이상 키) */}
-                                {selected.stabilizer && keyWidth >= 2 && (
+                                {selected.stabilizer && needsStab && (
                                     <Stabilizer
                                         position={[x, 0, z]}
-                                        widthU={keyWidth}
+                                        widthU={keyW}
                                         stabName={selected.stabilizer.name}
                                     />
                                 )}
@@ -540,11 +567,12 @@ function KeyboardModel({ selected }: Keyboard3DProps) {
                                 {/* Keycap */}
                                 <Key
                                     position={[x, 0, z]}
-                                    width={keyWidth * keyUnit}
+                                    width={keyW * keyUnit}
+                                    depth={capDepth}
                                     color={keycapColor}
                                     opacity={keycapOpacity}
                                     profile={keycapProfile}
-                                    row={rowIndex}
+                                    row={Math.max(0, rowIndex - (rows.length - 5))}
                                 />
                             </group>
                         )
