@@ -10,9 +10,10 @@ import { ThemeToggle } from "@/components/theme-toggle";
 import { Keyboard3D } from "@/components/keyboard-3d";
 import { SaveBuildDialog } from "@/components/save-build-dialog";
 import { LoadBuildsDialog } from "@/components/load-builds-dialog";
-import { SelectedParts, AllParts } from "@/lib/types";
+import { SelectedParts, AllParts, PCB, Case as CaseType, Plate, Switch, Stabilizer, Keycap } from "@/lib/types";
 import { checkCompatibilityLocal } from "@/lib/compatibility";
 import { useAllParts, useBuilds, useSaveBuild, useUpdateBuild, useDeleteBuild } from "@/lib/hooks";
+import { PartsFilter, applyFilters, toggleFilter } from "@/components/parts-filter";
 import { getBuild } from "@/lib/api";
 import { useAuth } from "@/lib/auth-context";
 import {
@@ -69,6 +70,55 @@ function BuilderContent() {
     const [shareMessage, setShareMessage] = useState("");
     const [showMiniPreview, setShowMiniPreview] = useState(false);
     const mainPreviewRef = useRef<HTMLDivElement>(null);
+
+    // Parts filters
+    const [pcbFilters, setPcbFilters] = useState<Record<string, Set<string>>>({});
+    const [caseFilters, setCaseFilters] = useState<Record<string, Set<string>>>({});
+    const [plateFilters, setPlateFilters] = useState<Record<string, Set<string>>>({});
+    const [stabFilters, setStabFilters] = useState<Record<string, Set<string>>>({});
+    const [switchFilters, setSwitchFilters] = useState<Record<string, Set<string>>>({});
+    const [keycapFilters, setKeycapFilters] = useState<Record<string, Set<string>>>({});
+
+    const pcbFilterConfig = useMemo(() => [
+        { key: "layout", label: "Layout", getValue: (p: PCB) => p.layout },
+        { key: "mounting_type", label: "Mounting", getValue: (p: PCB) => p.mounting_type },
+        { key: "hotswap", label: "Hotswap", getValue: (p: PCB) => p.hotswap, type: "boolean" as const },
+        { key: "switch_type", label: "Switch Type", getValue: (p: PCB) => p.switch_type },
+    ], []);
+
+    const caseFilterConfig = useMemo(() => [
+        { key: "layout", label: "Layout", getValue: (c: CaseType) => c.layout },
+        { key: "mounting_type", label: "Mounting", getValue: (c: CaseType) => c.mounting_type },
+        { key: "material", label: "Material", getValue: (c: CaseType) => c.material },
+    ], []);
+
+    const plateFilterConfig = useMemo(() => [
+        { key: "layout", label: "Layout", getValue: (p: Plate) => p.layout },
+        { key: "material", label: "Material", getValue: (p: Plate) => p.material },
+        { key: "switch_type", label: "Switch Type", getValue: (p: Plate) => p.switch_type },
+    ], []);
+
+    const stabFilterConfig = useMemo(() => [
+        { key: "stab_type", label: "Type", getValue: (s: Stabilizer) => s.stab_type },
+    ], []);
+
+    const switchFilterConfig = useMemo(() => [
+        { key: "switch_type", label: "Switch Type", getValue: (s: Switch) => s.switch_type },
+        { key: "tactile", label: "Tactile", getValue: (s: Switch) => s.tactile, type: "boolean" as const },
+        { key: "clicky", label: "Clicky", getValue: (s: Switch) => s.clicky, type: "boolean" as const },
+    ], []);
+
+    const keycapFilterConfig = useMemo(() => [
+        { key: "profile", label: "Profile", getValue: (k: Keycap) => k.profile },
+        { key: "material", label: "Material", getValue: (k: Keycap) => k.material },
+    ], []);
+
+    const filteredPcbs = useMemo(() => applyFilters(pcbs, pcbFilters, pcbFilterConfig), [pcbs, pcbFilters, pcbFilterConfig]);
+    const filteredCases = useMemo(() => applyFilters(cases, caseFilters, caseFilterConfig), [cases, caseFilters, caseFilterConfig]);
+    const filteredPlates = useMemo(() => applyFilters(plates, plateFilters, plateFilterConfig), [plates, plateFilters, plateFilterConfig]);
+    const filteredStabilizers = useMemo(() => applyFilters(stabilizers, stabFilters, stabFilterConfig), [stabilizers, stabFilters, stabFilterConfig]);
+    const filteredSwitches = useMemo(() => applyFilters(switches, switchFilters, switchFilterConfig), [switches, switchFilters, switchFilterConfig]);
+    const filteredKeycaps = useMemo(() => applyFilters(keycaps, keycapFilters, keycapFilterConfig), [keycaps, keycapFilters, keycapFilterConfig]);
 
     // IntersectionObserver: show mini preview when main preview is out of view
     useEffect(() => {
@@ -486,8 +536,15 @@ function BuilderContent() {
                     {/* PCB */}
                     <Card className="p-3 sm:p-4 dark:bg-gray-800 dark:border-gray-700">
                         <h3 className="font-bold text-base sm:text-lg mb-2 sm:mb-3 dark:text-white">PCB</h3>
+                        <PartsFilter
+                            items={pcbs}
+                            activeFilters={pcbFilters}
+                            onToggleFilter={(k, v) => setPcbFilters((prev) => toggleFilter(prev, k, v))}
+                            onReset={() => setPcbFilters({})}
+                            filterConfig={pcbFilterConfig}
+                        />
                         <div className="space-y-2">
-                            {pcbs.map((pcb) => (
+                            {filteredPcbs.map((pcb) => (
                                 <div
                                     key={pcb.id}
                                     onClick={() => setSelected({
@@ -519,8 +576,15 @@ function BuilderContent() {
                     {/* Case */}
                     <Card className="p-3 sm:p-4 dark:bg-gray-800 dark:border-gray-700">
                         <h3 className="font-bold text-base sm:text-lg mb-2 sm:mb-3 dark:text-white">Case</h3>
+                        <PartsFilter
+                            items={cases}
+                            activeFilters={caseFilters}
+                            onToggleFilter={(k, v) => setCaseFilters((prev) => toggleFilter(prev, k, v))}
+                            onReset={() => setCaseFilters({})}
+                            filterConfig={caseFilterConfig}
+                        />
                         <div className="space-y-2">
-                            {cases.map((c) => (
+                            {filteredCases.map((c) => (
                                 <div
                                     key={c.id}
                                     onClick={() => setSelected({
@@ -552,8 +616,15 @@ function BuilderContent() {
                     {/* Switch */}
                     <Card className="p-3 sm:p-4 dark:bg-gray-800 dark:border-gray-700">
                         <h3 className="font-bold text-base sm:text-lg mb-2 sm:mb-3 dark:text-white">Switch</h3>
+                        <PartsFilter
+                            items={switches}
+                            activeFilters={switchFilters}
+                            onToggleFilter={(k, v) => setSwitchFilters((prev) => toggleFilter(prev, k, v))}
+                            onReset={() => setSwitchFilters({})}
+                            filterConfig={switchFilterConfig}
+                        />
                         <div className="space-y-2">
-                            {switches.map((sw) => (
+                            {filteredSwitches.map((sw) => (
                                 <div
                                     key={sw.id}
                                     onClick={() => setSelected({
@@ -581,8 +652,15 @@ function BuilderContent() {
                     {/* Plate */}
                     <Card className="p-3 sm:p-4 dark:bg-gray-800 dark:border-gray-700">
                         <h3 className="font-bold text-base sm:text-lg mb-2 sm:mb-3 dark:text-white">Plate</h3>
+                        <PartsFilter
+                            items={plates}
+                            activeFilters={plateFilters}
+                            onToggleFilter={(k, v) => setPlateFilters((prev) => toggleFilter(prev, k, v))}
+                            onReset={() => setPlateFilters({})}
+                            filterConfig={plateFilterConfig}
+                        />
                         <div className="space-y-2">
-                            {plates.map((plate) => (
+                            {filteredPlates.map((plate) => (
                                 <div
                                     key={plate.id}
                                     onClick={() => setSelected({
@@ -614,8 +692,15 @@ function BuilderContent() {
                     {/* Stabilizer */}
                     <Card className="p-3 sm:p-4 dark:bg-gray-800 dark:border-gray-700">
                         <h3 className="font-bold text-base sm:text-lg mb-2 sm:mb-3 dark:text-white">Stabilizer</h3>
+                        <PartsFilter
+                            items={stabilizers}
+                            activeFilters={stabFilters}
+                            onToggleFilter={(k, v) => setStabFilters((prev) => toggleFilter(prev, k, v))}
+                            onReset={() => setStabFilters({})}
+                            filterConfig={stabFilterConfig}
+                        />
                         <div className="space-y-2">
-                            {stabilizers.map((stab) => (
+                            {filteredStabilizers.map((stab) => (
                                 <div
                                     key={stab.id}
                                     onClick={() => setSelected({
@@ -641,8 +726,15 @@ function BuilderContent() {
                     {/* Keycap */}
                     <Card className="p-3 sm:p-4 dark:bg-gray-800 dark:border-gray-700">
                         <h3 className="font-bold text-base sm:text-lg mb-2 sm:mb-3 dark:text-white">Keycap</h3>
+                        <PartsFilter
+                            items={keycaps}
+                            activeFilters={keycapFilters}
+                            onToggleFilter={(k, v) => setKeycapFilters((prev) => toggleFilter(prev, k, v))}
+                            onReset={() => setKeycapFilters({})}
+                            filterConfig={keycapFilterConfig}
+                        />
                         <div className="space-y-2">
-                            {keycaps.map((keycap) => (
+                            {filteredKeycaps.map((keycap) => (
                                 <div
                                     key={keycap.id}
                                     onClick={() => setSelected({
