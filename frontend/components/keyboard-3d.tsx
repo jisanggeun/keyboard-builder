@@ -212,6 +212,104 @@ function Stabilizer({ position, widthU, stabName }: {
     )
 }
 
+// Mounting Structure 컴포넌트
+function MountingStructure({ mountingType, caseColor, caseWidth, caseDepth }: {
+    mountingType: string
+    caseColor: string
+    caseWidth: number
+    caseDepth: number
+}) {
+    const hw = caseWidth / 2
+    const hd = caseDepth / 2
+
+    if (mountingType === "Tray") {
+        // Tray mount: brass standoff 기둥 배치 (7개)
+        const standoffPositions: [number, number, number][] = [
+            [-hw * 0.6, -0.55, -hd * 0.5],
+            [0, -0.55, -hd * 0.5],
+            [hw * 0.6, -0.55, -hd * 0.5],
+            [-hw * 0.3, -0.55, 0],
+            [hw * 0.3, -0.55, 0],
+            [-hw * 0.6, -0.55, hd * 0.5],
+            [hw * 0.6, -0.55, hd * 0.5],
+        ]
+        return (
+            <group>
+                {standoffPositions.map((pos, i) => (
+                    <mesh key={i} position={pos}>
+                        <cylinderGeometry args={[0.12, 0.14, 0.12, 8]} />
+                        <meshStandardMaterial color="#b8860b" metalness={0.9} roughness={0.15} />
+                    </mesh>
+                ))}
+            </group>
+        )
+    }
+
+    if (mountingType === "Gasket") {
+        // Gasket mount: 케이스 내벽 상단에 가스켓 스트립 (양쪽 + 앞뒤)
+        const stripThick = 0.06
+        const stripH = 0.08
+        const wallOffset = 0.25
+        return (
+            <group>
+                {/* 좌측 가스켓 스트립 */}
+                <mesh position={[-(hw - wallOffset), -0.15, 0]}>
+                    <boxGeometry args={[stripThick, stripH, caseDepth * 0.7]} />
+                    <meshStandardMaterial color="#4a4a4a" transparent opacity={0.6} roughness={0.8} />
+                </mesh>
+                {/* 우측 가스켓 스트립 */}
+                <mesh position={[(hw - wallOffset), -0.15, 0]}>
+                    <boxGeometry args={[stripThick, stripH, caseDepth * 0.7]} />
+                    <meshStandardMaterial color="#4a4a4a" transparent opacity={0.6} roughness={0.8} />
+                </mesh>
+                {/* 앞쪽 가스켓 스트립 */}
+                <mesh position={[0, -0.15, (hd - wallOffset)]}>
+                    <boxGeometry args={[caseWidth * 0.7, stripH, stripThick]} />
+                    <meshStandardMaterial color="#4a4a4a" transparent opacity={0.6} roughness={0.8} />
+                </mesh>
+                {/* 뒤쪽 가스켓 스트립 */}
+                <mesh position={[0, -0.15, -(hd - wallOffset)]}>
+                    <boxGeometry args={[caseWidth * 0.7, stripH, stripThick]} />
+                    <meshStandardMaterial color="#4a4a4a" transparent opacity={0.6} roughness={0.8} />
+                </mesh>
+            </group>
+        )
+    }
+
+    if (mountingType === "Top") {
+        // Top mount: 케이스 상단 림에서 안쪽으로 돌출된 탭 4개
+        const tabW = 0.5
+        const tabH = 0.06
+        const tabD = 0.15
+        return (
+            <group>
+                {/* 좌측 앞 탭 */}
+                <mesh position={[-(hw - 0.3), -0.1, hd * 0.4]}>
+                    <boxGeometry args={[tabD, tabH, tabW]} />
+                    <meshStandardMaterial color={caseColor} metalness={0.7} roughness={0.2} />
+                </mesh>
+                {/* 좌측 뒤 탭 */}
+                <mesh position={[-(hw - 0.3), -0.1, -hd * 0.4]}>
+                    <boxGeometry args={[tabD, tabH, tabW]} />
+                    <meshStandardMaterial color={caseColor} metalness={0.7} roughness={0.2} />
+                </mesh>
+                {/* 우측 앞 탭 */}
+                <mesh position={[(hw - 0.3), -0.1, hd * 0.4]}>
+                    <boxGeometry args={[tabD, tabH, tabW]} />
+                    <meshStandardMaterial color={caseColor} metalness={0.7} roughness={0.2} />
+                </mesh>
+                {/* 우측 뒤 탭 */}
+                <mesh position={[(hw - 0.3), -0.1, -hd * 0.4]}>
+                    <boxGeometry args={[tabD, tabH, tabW]} />
+                    <meshStandardMaterial color={caseColor} metalness={0.7} roughness={0.2} />
+                </mesh>
+            </group>
+        )
+    }
+
+    return null
+}
+
 // 행별 스컬프팅 설정 (높이 차이 미묘, 기울기로 스컬프팅)
 const ROW_SCULPT: Record<string, { height: number; tilt: number }[]> = {
     Cherry: [
@@ -355,24 +453,88 @@ const LAYOUTS: Record<string, { keys: KeyEntry[], y: number }[]> = {
     ],
 }
 
+// 그룹별 레이아웃 오버라이드 (같은 배열 카테고리 내 제품별 키 배열 차이)
+// QMK/VIA 물리 레이아웃 데이터 기반
+// ID80, Keychron Q6, Leopold FC900R 등은 기본 레이아웃과 동일하여 오버라이드 없음
+const GROUP_LAYOUTS: Record<string, { keys: KeyEntry[], y: number }[]> = {
+    // === 60% ===
+    "GH60 / Poker": [
+        // GH60 PCB 지원 Split backspace (2U → 1U+1U)
+        { keys: [1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1], y: 4 },        // 15U
+        { keys: [1.5, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1.5], y: 3 },        // 15U
+        { keys: [1.75, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 2.25], y: 2 },         // 15U
+        { keys: [2.25, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 2.75], y: 1 },            // 15U
+        { keys: [1.25, 1.25, 1.25, 6.25, 1.25, 1.25, 1.25, 1.25], y: 0 },      // 15U
+    ],
+
+    // === 65% ===
+    "NK65": [
+        // 블로커 없음, 우측 모디파이어 1U (6x1U)
+        { keys: [1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 2, 1], y: 4 },        // 16U
+        { keys: [1.5, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1.5, 1], y: 3 },    // 16U
+        { keys: [1.75, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 2.25, 1], y: 2 },     // 16U
+        { keys: [2.25, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1.75, 1, 1], y: 1 },     // 16U
+        { keys: [1.25, 1.25, 1.25, 6.25, 1, 1, 1, 1, 1, 1], y: 0 },            // 16U
+    ],
+
+    // === 75% ===
+    "KBD75": [
+        // Compact 75%: F-row 16키 빽빽 (갭 없음), body에 가까움 (y=5)
+        { keys: [1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1], y: 5 },     // 16U (16키)
+        { keys: [1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 2, 1], y: 4 },        // 16U
+        { keys: [1.5, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1.5, 1], y: 3 },    // 16U
+        { keys: [1.75, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 2.25, 1], y: 2 },     // 16U
+        { keys: [2.25, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1.75, 1, 1], y: 1 },     // 16U
+        { keys: [1.25, 1.25, 1.25, 6.25, 1, 1, 1, 1, 1, 1], y: 0 },            // 16U
+    ],
+    "GMMK Pro": [
+        // Exploded 75%: 0.25U F-row 갭, PrtSc 포함 (14키), 우측 노브 공간 (15U)
+        { keys: [1, -0.25, 1, 1, 1, 1, -0.25, 1, 1, 1, 1, -0.25, 1, 1, 1, 1, -0.25, 1], y: 5.5 }, // 15U (14키+노브1U)
+        { keys: [1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 2, 1], y: 4 },        // 16U
+        { keys: [1.5, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1.5, 1], y: 3 },    // 16U
+        { keys: [1.75, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 2.25, 1], y: 2 },     // 16U
+        { keys: [2.25, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1.75, 1, 1], y: 1 },     // 16U
+        { keys: [1.25, 1.25, 1.25, 6.25, 1, 1, 1, 1, 1, 1], y: 0 },            // 16U
+    ],
+
+    // === TKL ===
+    "Freebird TKL": [
+        // F13 키 포함 (17키 F-row), 표준 0.25U 갭
+        { keys: [1, -0.25, 1, 1, 1, 1, -0.25, 1, 1, 1, 1, -0.25, 1, 1, 1, 1, -0.25, 1, -0.25, 1, 1, 1], y: 5.5 }, // 18.25U (17키)
+        { keys: [1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 2, -0.25, 1, 1, 1], y: 4 },    // 18.25U
+        { keys: [1.5, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1.5, -0.25, 1, 1, 1], y: 3 }, // 18.25U
+        { keys: [1.75, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 2.25], y: 2 },                   // 15U
+        { keys: [2.25, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 2.75, -0.25, -1, 1, -1], y: 1 },   // 18.25U
+        { keys: [1.25, 1.25, 1.25, 6.25, 1.25, 1.25, 1.25, 1.25, -0.25, 1, 1, 1], y: 0 }, // 18.25U
+    ],
+}
+
 function KeyboardModel({ selected }: Keyboard3DProps) {
-    // PCB 레이아웃 (키 배열)
+    // PCB 레이아웃 (키 배열) - 그룹별 오버라이드 우선
     const pcbLayout = selected.pcb?.layout || "60%"
-    const rows = LAYOUTS[pcbLayout] || LAYOUTS["60%"]
-    
-    // Case 레이아웃 (Case 크기)
+    const groupName = selected.pcb?.compatible_group_name || selected.case?.compatible_group_name
+    const rows = (groupName && GROUP_LAYOUTS[groupName]) || LAYOUTS[pcbLayout] || LAYOUTS["60%"]
+
+    // Case 레이아웃 (Case 크기) - 그룹별 오버라이드 우선
+    const caseGroupName = selected.case?.compatible_group_name
     const caseLayout = selected.case?.layout || pcbLayout
-    const caseRows = LAYOUTS[caseLayout] || LAYOUTS["60%"]
+    const caseRows = (caseGroupName && GROUP_LAYOUTS[caseGroupName]) || LAYOUTS[caseLayout] || LAYOUTS["60%"]
 
-    // Plate 레이아웃 (Plate 크기)
+    // Plate 레이아웃 (Plate 크기) - 그룹별 오버라이드 우선
+    const plateGroupName = selected.plate?.compatible_group_name
     const plateLayout = selected.plate?.layout || pcbLayout
-    const plateRows = LAYOUTS[plateLayout] || LAYOUTS["60%"]
+    const plateRows = (plateGroupName && GROUP_LAYOUTS[plateGroupName]) || LAYOUTS[plateLayout] || LAYOUTS["60%"]
 
-    // 호환성 체크
-    const isLayoutMismatch =
-      (selected.pcb && selected.case && pcbLayout !== caseLayout) ||
-      (selected.pcb && selected.plate && pcbLayout !== plateLayout) ||
-      (selected.case && selected.plate && caseLayout !== plateLayout)
+    // 호환성 체크 (compatible_group_id 기반)
+    const hasGroupMismatch = (() => {
+        const pcbGroup = selected.pcb?.compatible_group_id
+        const caseGroup = selected.case?.compatible_group_id
+        const plateGroup = selected.plate?.compatible_group_id
+        if (pcbGroup && caseGroup && pcbGroup !== caseGroup) return true
+        if (pcbGroup && plateGroup && pcbGroup !== plateGroup) return true
+        if (caseGroup && plateGroup && caseGroup !== plateGroup) return true
+        return false
+    })()
 
     // 행 너비 계산 (양수=키, 음수=갭, 0=빈 1U 공간, 객체=세로키)
     const getRowWidth = (keys: KeyEntry[]) => {
@@ -407,12 +569,35 @@ function KeyboardModel({ selected }: Keyboard3DProps) {
     const plateDepth = (plateYRange.maxY - plateYRange.minY + 1) * keyUnit
 
     // Case 색상
+    const CASE_COLOR_MAP: Record<string, string> = {
+        "black": "#1a1a1a",
+        "white": "#e8e8e8",
+        "silver": "#c0c0c0",
+        "e-white": "#f0ede6",
+        "navy": "#1b2a4a",
+        "space gray": "#6b6b6b",
+        "navy blue": "#1e3a5f",
+        "frosted": "#d8e8f0",
+        "smoke": "#4a4a4a",
+        "transparent": "#e0e0e0",
+        "charcoal": "#36454f",
+        "gray": "#808080",
+    }
     const getCaseColor = () => {
         const color = selected.case?.color?.toLowerCase()
-        if(color === "black") return "#1a1a1a"
-        if(color === "white") return "#e8e8e8"
-        if(color === "silver") return "#c0c0c0"
-        return "#2d2d2d"
+        if (!color) return "#2d2d2d"
+        return CASE_COLOR_MAP[color] ?? "#2d2d2d"
+    }
+
+    // Case 재질별 속성
+    const getCaseMaterialProps = () => {
+        const material = selected.case?.material?.toLowerCase()
+        if (material === "aluminum") return { metalness: 0.85, roughness: 0.15, transparent: false, opacity: 1 }
+        if (material === "polycarbonate") return { metalness: 0.0, roughness: 0.2, transparent: true, opacity: 0.7 }
+        if (material === "acrylic") return { metalness: 0.0, roughness: 0.1, transparent: true, opacity: 0.5 }
+        if (material === "plastic") return { metalness: 0.0, roughness: 0.6, transparent: false, opacity: 1 }
+        if (material === "abs") return { metalness: 0.0, roughness: 0.5, transparent: false, opacity: 1 }
+        return { metalness: 0.1, roughness: 0.3, transparent: false, opacity: 1 }
     }
 
     // Plate 재질별 속성
@@ -433,7 +618,10 @@ function KeyboardModel({ selected }: Keyboard3DProps) {
         if(name.includes("blue")) return "#4287f5"
         if(name.includes("brown")) return "#8b5a2b"
         if(name.includes("black")) return "#2d2d2d"
-        return "#f5d742"  // 기본 노란색
+        if(name.includes("white")) return "#e8e8e8"
+        if(name.includes("milky")) return "#f5e6c8"
+        if(name.includes("choc")) return "#e84545"
+        return "#f5d742"
     }
 
     // Keycap 색상
@@ -441,15 +629,28 @@ function KeyboardModel({ selected }: Keyboard3DProps) {
         if (!selected.keycap) return "#cccccc"
         const name = selected.keycap.name.toLowerCase()
         if(name.includes("olivia")) return "#e8c4c4"
+        if(name.includes("laser")) return "#9b4dca"
         if(name.includes("dolch")) return "#4a4a4a"
+        if(name.includes("retro")) return "#d4c5a0"
+        if(name.includes("wob")) return "#1a1a1a"
+        if(name.includes("granite")) return "#b0b0b0"
         if(name.includes("botanical")) return "#2d5a3d"
         if(name.includes("mizu")) return "#6fa8c7"
-        if(name.includes("laser")) return "#9b4dca"
         if(name.includes("carbon")) return "#f57c00"
         return "#f0f0f0"
     }
 
     const caseColor = getCaseColor()
+    const caseMaterialProps = getCaseMaterialProps()
+
+    // 색상 기반 투명도 오버라이드 (Frosted, Smoke, Transparent)
+    const caseColorLower = selected.case?.color?.toLowerCase()
+    const isCaseTranslucentColor = caseColorLower === "frosted" || caseColorLower === "smoke" || caseColorLower === "transparent"
+    const caseFinalTransparent = caseMaterialProps.transparent || isCaseTranslucentColor
+    const caseFinalOpacity = isCaseTranslucentColor
+        ? (caseColorLower === "transparent" ? 0.3 : caseColorLower === "frosted" ? 0.6 : 0.65)
+        : caseMaterialProps.opacity
+
     const plateProps = getPlateProps()
     const switchColor = getSwitchColor()
     const keycapColor = getKeycapColor()
@@ -474,20 +675,32 @@ function KeyboardModel({ selected }: Keyboard3DProps) {
             <mesh geometry={caseGeometry} position={[0, -0.6, 0]}>
                 <meshStandardMaterial
                     color={caseColor}
-                    roughness={0.3}
-                    metalness={0.1}
+                    roughness={caseMaterialProps.roughness}
+                    metalness={caseMaterialProps.metalness}
+                    transparent={caseFinalTransparent}
+                    opacity={caseFinalOpacity}
                     side={THREE.DoubleSide}
                 />
             </mesh>
 
-            {/* 레이아웃 일치하지 않을 경우 경고 */}
-            {isLayoutMismatch && (
+            {/* Mounting Structure */}
+            {selected.case?.mounting_type && (
+                <MountingStructure
+                    mountingType={selected.case.mounting_type}
+                    caseColor={caseColor}
+                    caseWidth={caseWidth}
+                    caseDepth={caseDepth}
+                />
+            )}
+
+            {/* compatible_group 불일치 시 경고 */}
+            {hasGroupMismatch && (
                 <mesh position={[0, 0.2, 0]}>
                     <boxGeometry args={[caseWidth + 1.2, 0.05, caseDepth + 1.2]} />
-                    <meshStandardMaterial 
-                        color="#ff0000" 
-                        transparent 
-                        opacity={0.6} 
+                    <meshStandardMaterial
+                        color="#ff0000"
+                        transparent
+                        opacity={0.6}
                     />
                 </mesh>
             )}
