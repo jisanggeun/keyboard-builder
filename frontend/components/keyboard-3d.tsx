@@ -9,6 +9,7 @@ import { SelectedParts } from "@/lib/types"
 interface Keyboard3DProps {
     selected: SelectedParts
     mini?: boolean
+    expanded?: boolean
 }
 
 // 키캡 지오메트리 (사다리꼴 - 아래 넓고 위 좁음, 바닥 없음)
@@ -797,38 +798,25 @@ function KeyboardModel({ selected }: Keyboard3DProps) {
     )
 }
 
-export function Keyboard3D({ selected, mini = false }: Keyboard3DProps) {
-    if (mini) {
-        return (
-            <div className="w-full h-full bg-gradient-to-b from-gray-100 to-gray-200 dark:from-gray-800 dark:to-gray-900">
-                <Canvas camera={{ position: [0, 12, 8], fov: 50 }}>
-                    <ambientLight intensity={0.5} />
-                    <directionalLight position={[10, 10, 5]} intensity={0.8} />
-                    <KeyboardModel selected={selected} />
-                    <OrbitControls
-                        enablePan={false}
-                        minDistance={6}
-                        maxDistance={20}
-                        minPolarAngle={0.2}
-                        maxPolarAngle={Math.PI / 2.2}
-                    />
-                    <Environment preset="studio" />
-                </Canvas>
-            </div>
-        )
-    }
+export function Keyboard3D({ selected, mini = false, expanded = false }: Keyboard3DProps) {
+    const cameraPos: [number, number, number] = expanded
+        ? [0, 10, 16]
+        : mini
+            ? [0, 12, 8]
+            : [0, 8, 12]
+    const fov = expanded ? 35 : mini ? 50 : 40
 
     return (
-        <div className="w-full h-[300px] sm:h-[400px] bg-gradient-to-b from-gray-100 to-gray-200 dark:from-gray-800 dark:to-gray-900 rounded-lg overflow-hidden">
-            <Canvas camera={{ position: [0, 8, 12], fov: 40 }}>
-                <ambientLight intensity={0.4} />
-                <directionalLight position={[10, 10, 5]} intensity={1} castShadow />
-                <directionalLight position={[-10, 5, -5]} intensity={0.3} />
+        <div className="w-full h-full bg-gradient-to-b from-gray-100 to-gray-200 dark:from-gray-800 dark:to-gray-900 rounded-lg overflow-hidden">
+            <Canvas camera={{ position: cameraPos, fov }}>
+                <ambientLight intensity={mini ? 0.5 : 0.4} />
+                <directionalLight position={[10, 10, 5]} intensity={mini ? 0.8 : 1} castShadow={!mini} />
+                {!mini && <directionalLight position={[-10, 5, -5]} intensity={0.3} />}
                 <KeyboardModel selected={selected} />
                 <OrbitControls
                     enablePan={false}
-                    minDistance={8}
-                    maxDistance={25}
+                    minDistance={mini ? 6 : 8}
+                    maxDistance={expanded ? 35 : 25}
                     minPolarAngle={0.2}
                     maxPolarAngle={Math.PI / 2.2}
                 />

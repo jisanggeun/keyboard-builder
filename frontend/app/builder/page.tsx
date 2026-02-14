@@ -68,8 +68,8 @@ function BuilderContent() {
     const [currentBuildName, setCurrentBuildName] = useState("");
     const [deletingId, setDeletingId] = useState<number | null>(null);
     const [shareMessage, setShareMessage] = useState("");
-    const [showMiniPreview, setShowMiniPreview] = useState(false);
-    const mainPreviewRef = useRef<HTMLDivElement>(null);
+    const [activeTab, setActiveTab] = useState<"pcb" | "case" | "switch" | "plate" | "stabilizer" | "keycap">("pcb");
+    const [previewExpanded, setPreviewExpanded] = useState(false);
 
     // Parts filters
     const [pcbFilters, setPcbFilters] = useState<Record<string, Set<string>>>({});
@@ -119,21 +119,6 @@ function BuilderContent() {
     const filteredStabilizers = useMemo(() => applyFilters(stabilizers, stabFilters, stabFilterConfig), [stabilizers, stabFilters, stabFilterConfig]);
     const filteredSwitches = useMemo(() => applyFilters(switches, switchFilters, switchFilterConfig), [switches, switchFilters, switchFilterConfig]);
     const filteredKeycaps = useMemo(() => applyFilters(keycaps, keycapFilters, keycapFilterConfig), [keycaps, keycapFilters, keycapFilterConfig]);
-
-    // IntersectionObserver: show mini preview when main preview is out of view
-    useEffect(() => {
-        const el = mainPreviewRef.current;
-        if (!el) return;
-
-        const observer = new IntersectionObserver(
-            ([entry]) => {
-                setShowMiniPreview(!entry.isIntersecting);
-            },
-            { threshold: 0.1 }
-        );
-        observer.observe(el);
-        return () => observer.disconnect();
-    }, []);
 
     const { data: builds = [], isLoading: buildsLoading } = useBuilds(token);
     const saveBuild = useSaveBuild(token);
@@ -268,11 +253,154 @@ function BuilderContent() {
         });
     }, [selected]);
 
+    const selectedParts: { label: string; name: string | null; price: string | null }[] = [
+        { label: "PCB", name: selected.pcb?.name ?? null, price: selected.pcb?.price ? `$${selected.pcb.price}` : null },
+        { label: "Case", name: selected.case?.name ?? null, price: selected.case?.price ? `$${selected.case.price}` : null },
+        { label: "Plate", name: selected.plate?.name ?? null, price: selected.plate?.price ? `$${selected.plate.price}` : null },
+        { label: "Switch", name: selected.switch?.name ?? null, price: selected.switch?.price ? `$${selected.switch.price}${selected.pcb ? ` x ${getSwitchCount(selected.pcb.layout)}` : ""}` : null },
+        { label: "Stabilizer", name: selected.stabilizer?.name ?? null, price: selected.stabilizer?.price ? `$${selected.stabilizer.price}` : null },
+        { label: "Keycap", name: selected.keycap?.name ?? null, price: selected.keycap?.price ? `$${selected.keycap.price}` : null },
+    ];
+
+    const totalPrice = (
+        (selected.pcb?.price || 0) +
+        (selected.case?.price || 0) +
+        (selected.plate?.price || 0) +
+        (selected.stabilizer?.price || 0) +
+        (selected.pcb && selected.switch ? (selected.switch.price || 0) * (getSwitchCount(selected.pcb.layout) || 0) : 0) +
+        (selected.keycap?.price || 0)
+    );
+
+    const tabs = [
+        { key: "pcb" as const, label: "PCB", selected: selected.pcb?.name },
+        { key: "case" as const, label: "Case", selected: selected.case?.name },
+        { key: "switch" as const, label: "Switch", selected: selected.switch?.name },
+        { key: "plate" as const, label: "Plate", selected: selected.plate?.name },
+        { key: "stabilizer" as const, label: "Stabilizer", selected: selected.stabilizer?.name },
+        { key: "keycap" as const, label: "Keycap", selected: selected.keycap?.name },
+    ];
+
+    const renderPartsList = () => {
+        switch (activeTab) {
+            case "pcb":
+                return (
+                    <>
+                        <PartsFilter items={pcbs} activeFilters={pcbFilters} onToggleFilter={(k, v) => setPcbFilters((prev) => toggleFilter(prev, k, v))} onReset={() => setPcbFilters({})} filterConfig={pcbFilterConfig} />
+                        <div className="grid grid-cols-1 md:grid-cols-2 xl:grid-cols-3 gap-2">
+                            {filteredPcbs.map((pcb) => (
+                                <div key={pcb.id} onClick={() => setSelected({ ...selected, pcb: selected.pcb?.id === pcb.id ? null : pcb })}
+                                    className={`p-3 rounded-lg cursor-pointer border transition-all duration-200 hover:shadow-md ${selected.pcb?.id === pcb.id ? "border-blue-500 bg-blue-50 dark:bg-blue-900/30 dark:border-blue-400 shadow-md" : "border-gray-200 dark:border-gray-600 hover:border-gray-300 dark:hover:border-gray-500"}`}>
+                                    <p className="font-medium dark:text-white">{pcb.name}</p>
+                                    <div className="flex flex-wrap gap-1 mt-1">
+                                        <Badge variant="secondary">{pcb.layout}</Badge>
+                                        <Badge variant="secondary">{pcb.mounting_type}</Badge>
+                                        {pcb.compatible_group_name && <Badge variant="outline" className="text-blue-600 border-blue-300 dark:text-blue-400 dark:border-blue-600">{pcb.compatible_group_name}</Badge>}
+                                    </div>
+                                </div>
+                            ))}
+                        </div>
+                    </>
+                );
+            case "case":
+                return (
+                    <>
+                        <PartsFilter items={cases} activeFilters={caseFilters} onToggleFilter={(k, v) => setCaseFilters((prev) => toggleFilter(prev, k, v))} onReset={() => setCaseFilters({})} filterConfig={caseFilterConfig} />
+                        <div className="grid grid-cols-1 md:grid-cols-2 xl:grid-cols-3 gap-2">
+                            {filteredCases.map((c) => (
+                                <div key={c.id} onClick={() => setSelected({ ...selected, case: selected.case?.id === c.id ? null : c })}
+                                    className={`p-3 rounded-lg cursor-pointer border transition-all duration-200 hover:shadow-md ${selected.case?.id === c.id ? "border-blue-500 bg-blue-50 dark:bg-blue-900/30 dark:border-blue-400 shadow-md" : "border-gray-200 dark:border-gray-600 hover:border-gray-300 dark:hover:border-gray-500"}`}>
+                                    <p className="font-medium dark:text-white">{c.name}</p>
+                                    <div className="flex flex-wrap gap-1 mt-1">
+                                        <Badge variant="secondary">{c.layout}</Badge>
+                                        <Badge variant="secondary">{c.mounting_type}</Badge>
+                                        {c.compatible_group_name && <Badge variant="outline" className="text-blue-600 border-blue-300 dark:text-blue-400 dark:border-blue-600">{c.compatible_group_name}</Badge>}
+                                    </div>
+                                </div>
+                            ))}
+                        </div>
+                    </>
+                );
+            case "switch":
+                return (
+                    <>
+                        <PartsFilter items={switches} activeFilters={switchFilters} onToggleFilter={(k, v) => setSwitchFilters((prev) => toggleFilter(prev, k, v))} onReset={() => setSwitchFilters({})} filterConfig={switchFilterConfig} />
+                        <div className="grid grid-cols-1 md:grid-cols-2 xl:grid-cols-3 gap-2">
+                            {filteredSwitches.map((sw) => (
+                                <div key={sw.id} onClick={() => setSelected({ ...selected, switch: selected.switch?.id === sw.id ? null : sw })}
+                                    className={`p-3 rounded-lg cursor-pointer border transition-all duration-200 hover:shadow-md ${selected.switch?.id === sw.id ? "border-blue-500 bg-blue-50 dark:bg-blue-900/30 dark:border-blue-400 shadow-md" : "border-gray-200 dark:border-gray-600 hover:border-gray-300 dark:hover:border-gray-500"}`}>
+                                    <p className="font-medium dark:text-white">{sw.name}</p>
+                                    <div className="flex gap-1 mt-1">
+                                        <Badge variant="secondary">{sw.switch_type}</Badge>
+                                        {sw.tactile && <Badge variant="secondary">Tactile</Badge>}
+                                        {sw.clicky && <Badge variant="secondary">Clicky</Badge>}
+                                    </div>
+                                </div>
+                            ))}
+                        </div>
+                    </>
+                );
+            case "plate":
+                return (
+                    <>
+                        <PartsFilter items={plates} activeFilters={plateFilters} onToggleFilter={(k, v) => setPlateFilters((prev) => toggleFilter(prev, k, v))} onReset={() => setPlateFilters({})} filterConfig={plateFilterConfig} />
+                        <div className="grid grid-cols-1 md:grid-cols-2 xl:grid-cols-3 gap-2">
+                            {filteredPlates.map((plate) => (
+                                <div key={plate.id} onClick={() => setSelected({ ...selected, plate: selected.plate?.id === plate.id ? null : plate })}
+                                    className={`p-3 rounded-lg cursor-pointer border transition-all duration-200 hover:shadow-md ${selected.plate?.id === plate.id ? "border-blue-500 bg-blue-50 dark:bg-blue-900/30 dark:border-blue-400 shadow-md" : "border-gray-200 dark:border-gray-600 hover:border-gray-300 dark:hover:border-gray-500"}`}>
+                                    <p className="font-medium dark:text-white">{plate.name}</p>
+                                    <div className="flex flex-wrap gap-1 mt-1">
+                                        <Badge variant="secondary">{plate.layout}</Badge>
+                                        <Badge variant="secondary">{plate.material}</Badge>
+                                        {plate.compatible_group_name && <Badge variant="outline" className="text-blue-600 border-blue-300 dark:text-blue-400 dark:border-blue-600">{plate.compatible_group_name}</Badge>}
+                                    </div>
+                                </div>
+                            ))}
+                        </div>
+                    </>
+                );
+            case "stabilizer":
+                return (
+                    <>
+                        <PartsFilter items={stabilizers} activeFilters={stabFilters} onToggleFilter={(k, v) => setStabFilters((prev) => toggleFilter(prev, k, v))} onReset={() => setStabFilters({})} filterConfig={stabFilterConfig} />
+                        <div className="grid grid-cols-1 md:grid-cols-2 xl:grid-cols-3 gap-2">
+                            {filteredStabilizers.map((stab) => (
+                                <div key={stab.id} onClick={() => setSelected({ ...selected, stabilizer: selected.stabilizer?.id === stab.id ? null : stab })}
+                                    className={`p-3 rounded-lg cursor-pointer border transition-all duration-200 hover:shadow-md ${selected.stabilizer?.id === stab.id ? "border-blue-500 bg-blue-50 dark:bg-blue-900/30 dark:border-blue-400 shadow-md" : "border-gray-200 dark:border-gray-600 hover:border-gray-300 dark:hover:border-gray-500"}`}>
+                                    <p className="font-medium dark:text-white">{stab.name}</p>
+                                    <div className="flex gap-1 mt-1">
+                                        <Badge variant="secondary">{stab.stab_type}</Badge>
+                                    </div>
+                                </div>
+                            ))}
+                        </div>
+                    </>
+                );
+            case "keycap":
+                return (
+                    <>
+                        <PartsFilter items={keycaps} activeFilters={keycapFilters} onToggleFilter={(k, v) => setKeycapFilters((prev) => toggleFilter(prev, k, v))} onReset={() => setKeycapFilters({})} filterConfig={keycapFilterConfig} />
+                        <div className="grid grid-cols-1 md:grid-cols-2 xl:grid-cols-3 gap-2">
+                            {filteredKeycaps.map((keycap) => (
+                                <div key={keycap.id} onClick={() => setSelected({ ...selected, keycap: selected.keycap?.id === keycap.id ? null : keycap })}
+                                    className={`p-3 rounded-lg cursor-pointer border transition-all duration-200 hover:shadow-md ${selected.keycap?.id === keycap.id ? "border-blue-500 bg-blue-50 dark:bg-blue-900/30 dark:border-blue-400 shadow-md" : "border-gray-200 dark:border-gray-600 hover:border-gray-300 dark:hover:border-gray-500"}`}>
+                                    <p className="font-medium dark:text-white">{keycap.name}</p>
+                                    <div className="flex gap-1 mt-1">
+                                        <Badge variant="secondary">{keycap.profile}</Badge>
+                                        <Badge variant="secondary">{keycap.material}</Badge>
+                                    </div>
+                                </div>
+                            ))}
+                        </div>
+                    </>
+                );
+        }
+    };
+
     return (
         <main className="min-h-screen bg-gray-50 dark:bg-gray-900">
             {/* 헤더 */}
             <header className="bg-white dark:bg-gray-800 border-b dark:border-gray-700 sticky top-0 z-50">
-                <div className="max-w-6xl mx-auto px-3 sm:px-4 py-3 sm:py-4 flex items-center justify-between">
+                <div className="max-w-[1400px] mx-auto px-3 sm:px-4 py-3 sm:py-4 flex items-center justify-between">
                     <div>
                         <h1 className="text-xl sm:text-2xl font-bold text-gray-900 dark:text-white">
                             KeyboardBuilder
@@ -312,465 +440,165 @@ function BuilderContent() {
                 </div>
             </header>
 
-            <div className="max-w-6xl mx-auto px-4 py-8">
-                {/* 빌드 저장/불러오기/공유 버튼 */}
-                <div className="flex flex-wrap items-center gap-2 mb-4">
-                    {user && (
-                        <>
-                            <Button
-                                variant="outline"
-                                size="sm"
-                                onClick={() => setLoadDialogOpen(true)}
+            <div className="max-w-[1400px] mx-auto px-4 py-6 flex flex-col lg:flex-row gap-6">
+                {/* 메인: 탭 + 파츠 리스트 */}
+                <div className="flex-1 min-w-0">
+                    {/* 탭 */}
+                    <div className="flex gap-1 mb-4 overflow-x-auto pb-1">
+                        {tabs.map((tab) => (
+                            <button
+                                key={tab.key}
+                                onClick={() => setActiveTab(tab.key)}
+                                className={`relative px-4 py-2 rounded-lg text-sm font-medium whitespace-nowrap transition-colors ${
+                                    activeTab === tab.key
+                                        ? "bg-blue-500 text-white dark:bg-blue-600"
+                                        : "bg-white text-gray-600 hover:bg-gray-100 dark:bg-gray-800 dark:text-gray-300 dark:hover:bg-gray-700"
+                                }`}
                             >
-                                불러오기
-                            </Button>
-                            <Button
-                                size="sm"
-                                onClick={() => setSaveDialogOpen(true)}
-                                disabled={!hasAnySelected}
-                            >
-                                {currentBuildId ? "업데이트" : "저장"}
-                            </Button>
-                        </>
-                    )}
-                    {hasAnySelected && (
-                        <Button
-                            variant="outline"
-                            size="sm"
-                            onClick={handleShareBuild}
-                        >
-                            공유
-                        </Button>
-                    )}
-                    {currentBuildName && (
-                        <span className="text-sm text-gray-500 dark:text-gray-400 ml-2">
-                            현재: {currentBuildName}
-                        </span>
-                    )}
-                    {shareMessage && (
-                        <span className="text-sm text-green-600 dark:text-green-400 ml-2">
-                            {shareMessage}
-                        </span>
-                    )}
+                                {tab.label}
+                                {tab.selected && (
+                                    <span className="absolute -top-1 -right-1 w-2.5 h-2.5 rounded-full bg-green-400 border-2 border-gray-50 dark:border-gray-900" />
+                                )}
+                            </button>
+                        ))}
+                    </div>
+
+                    {/* 파츠 리스트 */}
+                    <Card className="p-4 dark:bg-gray-800 dark:border-gray-700">
+                        {renderPartsList()}
+                    </Card>
                 </div>
 
-                {/* 선택한 파츠 요약 */}
-                <Card className="p-4 sm:p-6 mb-4 sm:mb-6 dark:bg-gray-800 dark:border-gray-700">
-                    <div className="flex items-center justify-between mb-3 sm:mb-4">
-                        <h2 className="text-base sm:text-lg font-bold dark:text-white">선택한 파츠</h2>
-                        {hasAnySelected && (
-                            <button onClick={() => {
-                                setSelected({
-                                    pcb: null, case: null, plate: null,
-                                    stabilizer: null, switch: null, keycap: null
-                                });
-                                setCurrentBuildId(null);
-                                setCurrentBuildName("");
-                            }}
-                                className="text-sm text-gray-500 hover:text-red-500 transition"
+                {/* 사이드바: 3D + 선택 요약 + 호환성 */}
+                <aside className="w-full lg:w-80 xl:w-96 shrink-0">
+                    <div className="lg:sticky lg:top-20 space-y-4">
+                        {/* 3D 미리보기 */}
+                        <Card className="dark:bg-gray-800 dark:border-gray-700 overflow-hidden relative">
+                            <div className="h-56 xl:h-64">
+                                <Keyboard3D selected={selected} />
+                            </div>
+                            <button
+                                onClick={() => setPreviewExpanded(true)}
+                                className="absolute top-2 right-2 w-7 h-7 flex items-center justify-center rounded-md bg-black/40 text-white hover:bg-black/60 transition"
+                                title="확대"
                             >
-                                전체 초기화
+                                <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                    <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M4 8V4m0 0h4M4 4l5 5m11-1V4m0 0h-4m4 0l-5 5M4 16v4m0 0h4m-4 0l5-5m11 5v-4m0 4h-4m4 0l-5-5" />
+                                </svg>
                             </button>
+                        </Card>
+
+                        {/* 선택한 파츠 */}
+                        <Card className="p-5 dark:bg-gray-800 dark:border-gray-700">
+                            <div className="flex items-center justify-between mb-4">
+                                <h2 className="text-base font-bold dark:text-white">선택한 파츠</h2>
+                                {hasAnySelected && (
+                                    <button onClick={() => {
+                                        setSelected({
+                                            pcb: null, case: null, plate: null,
+                                            stabilizer: null, switch: null, keycap: null
+                                        });
+                                        setCurrentBuildId(null);
+                                        setCurrentBuildName("");
+                                    }}
+                                        className="text-sm text-gray-500 hover:text-red-500 transition"
+                                    >
+                                        초기화
+                                    </button>
+                                )}
+                            </div>
+                            <div className="space-y-2.5">
+                                {selectedParts.map((part) => (
+                                    <div key={part.label} className="flex items-center justify-between text-sm">
+                                        <span className="text-gray-500 dark:text-gray-400 w-20 shrink-0 font-medium">{part.label}</span>
+                                        {part.name ? (
+                                            <>
+                                                <span className="flex-1 truncate font-medium dark:text-white mx-2">{part.name}</span>
+                                                <span className="text-gray-500 dark:text-gray-400 shrink-0">{part.price}</span>
+                                            </>
+                                        ) : (
+                                            <span className="flex-1 text-gray-400 dark:text-gray-600 mx-2">-</span>
+                                        )}
+                                    </div>
+                                ))}
+                            </div>
+
+                            {hasAnySelected && (
+                                <div className="mt-4 pt-4 border-t dark:border-gray-700 flex justify-between items-center">
+                                    <span className="text-sm text-gray-600 dark:text-gray-400">총 예상 가격</span>
+                                    <span className="text-lg font-bold text-blue-600">${totalPrice.toFixed(2)}</span>
+                                </div>
+                            )}
+                        </Card>
+
+                        {/* 호환성 */}
+                        {compatibility && (
+                            <div className={`p-3 rounded-lg text-xs ${
+                                compatibility.compatible
+                                ? "bg-green-50 border border-green-200 dark:bg-green-900/30 dark:border-green-700"
+                                : "bg-red-50 border border-red-200 dark:bg-red-900/30 dark:border-red-700"
+                            }`}>
+                                <p className={`font-medium ${
+                                    compatibility.compatible
+                                    ? "text-green-800 dark:text-green-400"
+                                    : "text-red-800 dark:text-red-400"
+                                }`}>
+                                    {compatibility.compatible ? "모든 파츠 호환" : "호환성 문제 발견"}
+                                </p>
+                                {compatibility.issues.map((issue, i) => (
+                                    <p key={i} className={`mt-1 ${
+                                        issue.type === "error"
+                                        ? "text-red-600 dark:text-red-400"
+                                        : "text-yellow-600 dark:text-yellow-400"
+                                    }`}>
+                                        {issue.type === "warning" ? "[주의] " : "[오류] "}{issue.message}
+                                    </p>
+                                ))}
+                            </div>
+                        )}
+
+                        {/* 액션 버튼 */}
+                        <div className="flex flex-wrap gap-2">
+                            {user && (
+                                <>
+                                    <Button variant="outline" size="sm" className="flex-1" onClick={() => setLoadDialogOpen(true)}>
+                                        불러오기
+                                    </Button>
+                                    <Button size="sm" className="flex-1" onClick={() => setSaveDialogOpen(true)} disabled={!hasAnySelected}>
+                                        {currentBuildId ? "업데이트" : "저장"}
+                                    </Button>
+                                </>
+                            )}
+                            {hasAnySelected && (
+                                <Button variant="outline" size="sm" className={user ? "w-full" : ""} onClick={handleShareBuild}>
+                                    공유
+                                </Button>
+                            )}
+                        </div>
+                        {currentBuildName && (
+                            <p className="text-xs text-gray-500 dark:text-gray-400 text-center">현재: {currentBuildName}</p>
+                        )}
+                        {shareMessage && (
+                            <p className="text-xs text-green-600 dark:text-green-400 text-center">{shareMessage}</p>
                         )}
                     </div>
-                    <div className="grid grid-cols-2 md:grid-cols-3 lg:grid-cols-6 gap-3">
-                        {/* PCB */}
-                        <div className={`p-3 rounded-lg border text-center ${
-                            selected.pcb
-                            ? "bg-blue-50 border-blue-200 dark:bg-blue-900/30 dark:border-blue-700"
-                            : "bg-gray-50 border-dashed dark:bg-gray-700 dark:border-gray-600"
-                        }`}>
-                            <p className="text-xs text-gray-500 dark:text-gray-400 mb-1">PCB</p>
-                            {selected.pcb ? (
-                                <>
-                                    <p className="font-medium text-sm truncate dark:text-white">{selected.pcb.name}</p>
-                                    <p className="text-xs text-gray-600 dark:text-gray-400">${selected.pcb.price}</p>
-                                </>
-                            ) : (
-                                <p className="text-sm text-gray-400 dark:text-gray-500">미선택</p>
-                            )}
-                        </div>
-
-                        {/* Case */}
-                        <div className={`p-3 rounded-lg border text-center ${
-                            selected.case
-                            ? "bg-blue-50 border-blue-200 dark:bg-blue-900/30 dark:border-blue-700"
-                            : "bg-gray-50 border-dashed dark:bg-gray-700 dark:border-gray-600"
-                        }`}>
-                            <p className="text-xs text-gray-500 dark:text-gray-400 mb-1">Case</p>
-                            {selected.case ? (
-                                <>
-                                    <p className="font-medium text-sm truncate dark:text-white">{selected.case.name}</p>
-                                    <p className="text-xs text-gray-600 dark:text-gray-400">${selected.case.price}</p>
-                                </>
-                            ) : (
-                                <p className="text-sm text-gray-400 dark:text-gray-500">미선택</p>
-                            )}
-                        </div>
-
-                        {/* Switch */}
-                        <div className={`p-3 rounded-lg border text-center ${
-                            selected.switch
-                            ? "bg-blue-50 border-blue-200 dark:bg-blue-900/30 dark:border-blue-700"
-                            : "bg-gray-50 border-dashed dark:bg-gray-700 dark:border-gray-600"
-                        }`}>
-                            <p className="text-xs text-gray-500 dark:text-gray-400 mb-1">Switch</p>
-                            {selected.switch ? (
-                                <>
-                                    <p className="font-medium text-sm truncate dark:text-white">{selected.switch.name}</p>
-                                    <p className="text-xs text-gray-600 dark:text-gray-400">
-                                        ${selected.switch.price} x {selected.pcb ? getSwitchCount(selected.pcb.layout) + "개" : "?개"}
-                                    </p>
-                                </>
-                            ) : (
-                                <p className="text-sm text-gray-400 dark:text-gray-500">미선택</p>
-                            )}
-                        </div>
-
-                        {/* Plate */}
-                        <div className={`p-3 rounded-lg border text-center ${
-                            selected.plate
-                            ? "bg-blue-50 border-blue-200 dark:bg-blue-900/30 dark:border-blue-700"
-                            : "bg-gray-50 border-dashed dark:bg-gray-700 dark:border-gray-600"
-                        }`}>
-                            <p className="text-xs text-gray-500 dark:text-gray-400 mb-1">Plate</p>
-                            {selected.plate ? (
-                                <>
-                                    <p className="font-medium text-sm truncate dark:text-white">{selected.plate.name}</p>
-                                    <p className="text-xs text-gray-600 dark:text-gray-400">${selected.plate.price}</p>
-                                </>
-                            ) : (
-                                <p className="text-sm text-gray-400 dark:text-gray-500">미선택</p>
-                            )}
-                        </div>
-
-                        {/* Stabilizer */}
-                        <div className={`p-3 rounded-lg border text-center ${
-                            selected.stabilizer
-                            ? "bg-blue-50 border-blue-200 dark:bg-blue-900/30 dark:border-blue-700"
-                            : "bg-gray-50 border-dashed dark:bg-gray-700 dark:border-gray-600"
-                        }`}>
-                            <p className="text-xs text-gray-500 dark:text-gray-400 mb-1">Stabilizer</p>
-                            {selected.stabilizer ? (
-                                <>
-                                    <p className="font-medium text-sm truncate dark:text-white">{selected.stabilizer.name}</p>
-                                    <p className="text-xs text-gray-600 dark:text-gray-400">${selected.stabilizer.price}</p>
-                                </>
-                            ) : (
-                                <p className="text-sm text-gray-400 dark:text-gray-500">미선택</p>
-                            )}
-
-                        </div>
-
-                        {/* Keycap */}
-                        <div className={`p-3 rounded-lg border text-center ${
-                            selected.keycap
-                            ? "bg-blue-50 border-blue-200 dark:bg-blue-900/30 dark:border-blue-700"
-                            : "bg-gray-50 border-dashed dark:bg-gray-700 dark:border-gray-600"
-                        }`}>
-                            <p className="text-xs text-gray-500 dark:text-gray-400 mb-1">Keycap</p>
-                            {selected.keycap ? (
-                                <>
-                                    <p className="font-medium text-sm truncate dark:text-white">{selected.keycap.name}</p>
-                                    <p className="text-xs text-gray-600 dark:text-gray-400">${selected.keycap.price}</p>
-                                </>
-                            ) : (
-                                <p className="text-sm text-gray-400 dark:text-gray-500">미선택</p>
-                            )}
-                        </div>
-                    </div>
-
-                    {/* 총 가격 */}
-                    {hasAnySelected && (
-                        <div className="mt-3 sm:mt-4 pt-3 sm:pt-4 border-t dark:border-gray-700 flex justify-between items-center">
-                            <span className="text-sm sm:text-base text-gray-600 dark:text-gray-400">총 예상 가격</span>
-                            <span className="text-lg sm:text-xl font-bold text-blue-600">
-                                ${(
-                                    (selected.pcb?.price || 0) +
-                                    (selected.case?.price || 0) +
-                                    (selected.plate?.price || 0) +
-                                    (selected.stabilizer?.price || 0) +
-                                    (selected.pcb && selected.switch ? (selected.switch.price || 0) * (getSwitchCount(selected.pcb.layout) || 0) : 0) +
-                                    (selected.keycap?.price || 0)
-                                ).toFixed(2)}
-                            </span>
-                        </div>
-                    )}
-                </Card>
-                {/* 3D 미리보기 */}
-                <div className="mb-6" ref={mainPreviewRef}>
-                    <h2 className="text-base sm:text-lg font-bold mb-3 dark:text-white">3D 미리보기</h2>
-                    <Keyboard3D selected={selected} />
-                </div>
-                {/* 파츠 호환 상태 */}
-                <div className="mb-8">
-                    {compatibility && (
-                        <div className={`p-4 rounded-lg ${
-                            compatibility.compatible
-                            ? "bg-green-50 border border-green-200 dark:bg-green-900/30 dark:border-green-700"
-                            : "bg-red-50 border border-red-200 dark:bg-red-900/30 dark:border-red-700"
-                        }`}>
-                            <p className={`font-medium ${
-                                compatibility.compatible
-                                ? "text-green-800 dark:text-green-400"
-                                : "text-red-800 dark:text-red-400"
-                            }`}>
-                                {compatibility.compatible
-                                ? "모든 파츠 호환"
-                                : "파츠 호환성 문제 발생"}
-                            </p>
-                            {compatibility.issues.map((issue, i) => (
-                                <p key={i} className={`text-sm mt-1 ${
-                                    issue.type === "error"
-                                    ? "text-red-600 dark:text-red-400"
-                                    : "text-yellow-600 dark:text-yellow-400"
-                                }`}>
-                                    {issue.type === "warning" ? "[주의] " : "[오류] "}{issue.message}
-                                </p>
-                            ))}
-                        </div>
-                    )}
-                </div>
-                {/* 파츠 선택 그리드 */}
-                <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4 sm:gap-6">
-                    {/* PCB */}
-                    <Card className="p-3 sm:p-4 dark:bg-gray-800 dark:border-gray-700">
-                        <h3 className="font-bold text-base sm:text-lg mb-2 sm:mb-3 dark:text-white">PCB</h3>
-                        <PartsFilter
-                            items={pcbs}
-                            activeFilters={pcbFilters}
-                            onToggleFilter={(k, v) => setPcbFilters((prev) => toggleFilter(prev, k, v))}
-                            onReset={() => setPcbFilters({})}
-                            filterConfig={pcbFilterConfig}
-                        />
-                        <div className="space-y-2">
-                            {filteredPcbs.map((pcb) => (
-                                <div
-                                    key={pcb.id}
-                                    onClick={() => setSelected({
-                                        ...selected,
-                                        pcb: selected.pcb?.id === pcb.id ? null : pcb
-                                    })}
-                                    className={`p-3 rounded-lg cursor-pointer border transition-all duration-200
-                                        hover:shadow-md hover:-translate-y-1 ${
-                                        selected.pcb?.id === pcb.id
-                                        ? "border-blue-500 bg-blue-50 dark:bg-blue-900/30 dark:border-blue-400 shadow-md"
-                                        : "border-gray-200 dark:border-gray-600 hover:border-gray-300 dark:hover:border-gray-500"
-                                    }`}
-                                >
-                                    <p className="font-medium dark:text-white">{pcb.name}</p>
-                                    <div className="flex flex-wrap gap-1 mt-1">
-                                        <Badge variant="secondary">{pcb.layout}</Badge>
-                                        <Badge variant="secondary">{pcb.mounting_type}</Badge>
-                                        {pcb.compatible_group_name && (
-                                            <Badge variant="outline" className="text-blue-600 border-blue-300 dark:text-blue-400 dark:border-blue-600">
-                                                {pcb.compatible_group_name}
-                                            </Badge>
-                                        )}
-                                    </div>
-                                </div>
-                            ))}
-                        </div>
-                    </Card>
-
-                    {/* Case */}
-                    <Card className="p-3 sm:p-4 dark:bg-gray-800 dark:border-gray-700">
-                        <h3 className="font-bold text-base sm:text-lg mb-2 sm:mb-3 dark:text-white">Case</h3>
-                        <PartsFilter
-                            items={cases}
-                            activeFilters={caseFilters}
-                            onToggleFilter={(k, v) => setCaseFilters((prev) => toggleFilter(prev, k, v))}
-                            onReset={() => setCaseFilters({})}
-                            filterConfig={caseFilterConfig}
-                        />
-                        <div className="space-y-2">
-                            {filteredCases.map((c) => (
-                                <div
-                                    key={c.id}
-                                    onClick={() => setSelected({
-                                        ...selected,
-                                        case: selected.case?.id === c.id ? null : c
-                                    })}
-                                    className={`p-3 rounded-lg cursor-pointer border transition-all duration-200
-                                        hover:shadow-md hover:-translate-y-1 ${
-                                        selected.case?.id === c.id
-                                        ? "border-blue-500 bg-blue-50 dark:bg-blue-900/30 dark:border-blue-400 shadow-md"
-                                        : "border-gray-200 dark:border-gray-600 hover:border-gray-300 dark:hover:border-gray-500"
-                                    }`}
-                                >
-                                    <p className="font-medium dark:text-white">{c.name}</p>
-                                    <div className="flex flex-wrap gap-1 mt-1">
-                                        <Badge variant="secondary">{c.layout}</Badge>
-                                        <Badge variant="secondary">{c.mounting_type}</Badge>
-                                        {c.compatible_group_name && (
-                                            <Badge variant="outline" className="text-blue-600 border-blue-300 dark:text-blue-400 dark:border-blue-600">
-                                                {c.compatible_group_name}
-                                            </Badge>
-                                        )}
-                                    </div>
-                                </div>
-                            ))}
-                        </div>
-                    </Card>
-
-                    {/* Switch */}
-                    <Card className="p-3 sm:p-4 dark:bg-gray-800 dark:border-gray-700">
-                        <h3 className="font-bold text-base sm:text-lg mb-2 sm:mb-3 dark:text-white">Switch</h3>
-                        <PartsFilter
-                            items={switches}
-                            activeFilters={switchFilters}
-                            onToggleFilter={(k, v) => setSwitchFilters((prev) => toggleFilter(prev, k, v))}
-                            onReset={() => setSwitchFilters({})}
-                            filterConfig={switchFilterConfig}
-                        />
-                        <div className="space-y-2">
-                            {filteredSwitches.map((sw) => (
-                                <div
-                                    key={sw.id}
-                                    onClick={() => setSelected({
-                                        ...selected,
-                                        switch: selected.switch?.id === sw.id ? null : sw
-                                    })}
-                                    className={`p-3 rounded-lg cursor-pointer border transition-all duration-200
-                                        hover:shadow-md hover:-translate-y-1 ${
-                                        selected.switch?.id === sw.id
-                                        ? "border-blue-500 bg-blue-50 dark:bg-blue-900/30 dark:border-blue-400 shadow-md"
-                                        : "border-gray-200 dark:border-gray-600 hover:border-gray-300 dark:hover:border-gray-500"
-                                    }`}
-                                >
-                                    <p className="font-medium dark:text-white">{sw.name}</p>
-                                    <div className="flex gap-1 mt-1">
-                                        <Badge variant="secondary">{sw.switch_type}</Badge>
-                                        {sw.tactile && <Badge variant="secondary">Tactile</Badge>}
-                                        {sw.clicky && <Badge variant="secondary">Clicky</Badge>}
-                                    </div>
-                                </div>
-                            ))}
-                        </div>
-                    </Card>
-
-                    {/* Plate */}
-                    <Card className="p-3 sm:p-4 dark:bg-gray-800 dark:border-gray-700">
-                        <h3 className="font-bold text-base sm:text-lg mb-2 sm:mb-3 dark:text-white">Plate</h3>
-                        <PartsFilter
-                            items={plates}
-                            activeFilters={plateFilters}
-                            onToggleFilter={(k, v) => setPlateFilters((prev) => toggleFilter(prev, k, v))}
-                            onReset={() => setPlateFilters({})}
-                            filterConfig={plateFilterConfig}
-                        />
-                        <div className="space-y-2">
-                            {filteredPlates.map((plate) => (
-                                <div
-                                    key={plate.id}
-                                    onClick={() => setSelected({
-                                        ...selected,
-                                        plate: selected.plate?.id === plate.id ? null : plate
-                                    })}
-                                    className={`p-3 rounded-lg cursor-pointer border transition-all duration-200
-                                        hover:shadow-md hover:-translate-y-1 ${
-                                        selected.plate?.id === plate.id
-                                        ? "border-blue-500 bg-blue-50 dark:bg-blue-900/30 dark:border-blue-400 shadow-md"
-                                        : "border-gray-200 dark:border-gray-600 hover:border-gray-300 dark:hover:border-gray-500"
-                                    }`}
-                                >
-                                    <p className="font-medium dark:text-white">{plate.name}</p>
-                                    <div className="flex flex-wrap gap-1 mt-1">
-                                        <Badge variant="secondary">{plate.layout}</Badge>
-                                        <Badge variant="secondary">{plate.material}</Badge>
-                                        {plate.compatible_group_name && (
-                                            <Badge variant="outline" className="text-blue-600 border-blue-300 dark:text-blue-400 dark:border-blue-600">
-                                                {plate.compatible_group_name}
-                                            </Badge>
-                                        )}
-                                    </div>
-                                </div>
-                            ))}
-                        </div>
-                    </Card>
-
-                    {/* Stabilizer */}
-                    <Card className="p-3 sm:p-4 dark:bg-gray-800 dark:border-gray-700">
-                        <h3 className="font-bold text-base sm:text-lg mb-2 sm:mb-3 dark:text-white">Stabilizer</h3>
-                        <PartsFilter
-                            items={stabilizers}
-                            activeFilters={stabFilters}
-                            onToggleFilter={(k, v) => setStabFilters((prev) => toggleFilter(prev, k, v))}
-                            onReset={() => setStabFilters({})}
-                            filterConfig={stabFilterConfig}
-                        />
-                        <div className="space-y-2">
-                            {filteredStabilizers.map((stab) => (
-                                <div
-                                    key={stab.id}
-                                    onClick={() => setSelected({
-                                        ...selected,
-                                        stabilizer: selected.stabilizer?.id === stab.id ? null : stab
-                                    })}
-                                    className={`p-3 rounded-lg cursor-pointer border transition-all duration-200
-                                        hover:shadow-md hover:-translate-y-1 ${
-                                        selected.stabilizer?.id === stab.id
-                                        ? "border-blue-500 bg-blue-50 dark:bg-blue-900/30 dark:border-blue-400 shadow-md"
-                                        : "border-gray-200 dark:border-gray-600 hover:border-gray-300 dark:hover:border-gray-500"
-                                    }`}
-                                >
-                                    <p className="font-medium dark:text-white">{stab.name}</p>
-                                    <div className="flex gap-1 mt-1">
-                                        <Badge variant="secondary">{stab.stab_type}</Badge>
-                                    </div>
-                                </div>
-                            ))}
-                        </div>
-                    </Card>
-
-                    {/* Keycap */}
-                    <Card className="p-3 sm:p-4 dark:bg-gray-800 dark:border-gray-700">
-                        <h3 className="font-bold text-base sm:text-lg mb-2 sm:mb-3 dark:text-white">Keycap</h3>
-                        <PartsFilter
-                            items={keycaps}
-                            activeFilters={keycapFilters}
-                            onToggleFilter={(k, v) => setKeycapFilters((prev) => toggleFilter(prev, k, v))}
-                            onReset={() => setKeycapFilters({})}
-                            filterConfig={keycapFilterConfig}
-                        />
-                        <div className="space-y-2">
-                            {filteredKeycaps.map((keycap) => (
-                                <div
-                                    key={keycap.id}
-                                    onClick={() => setSelected({
-                                        ...selected,
-                                        keycap: selected.keycap?.id === keycap.id ? null : keycap
-                                    })}
-                                    className={`p-3 rounded-lg cursor-pointer border transition-all duration-200
-                                        hover:shadow-md hover:-translate-y-1 ${
-                                        selected.keycap?.id === keycap.id
-                                        ? "border-blue-500 bg-blue-50 dark:bg-blue-900/30 dark:border-blue-400 shadow-md"
-                                        : "border-gray-200 dark:border-gray-600 hover:border-gray-300 dark:hover:border-gray-500"
-                                    }`}
-                                >
-                                    <p className="font-medium dark:text-white">{keycap.name}</p>
-                                    <div className="flex gap-1 mt-1">
-                                        <Badge variant="secondary">{keycap.profile}</Badge>
-                                        <Badge variant="secondary">{keycap.material}</Badge>
-                                    </div>
-                                </div>
-                            ))}
-                        </div>
-                    </Card>
-                </div>
+                </aside>
             </div>
 
-            {/* Floating Mini 3D Preview */}
-            {showMiniPreview && hasAnySelected && (
-                <div className="fixed bottom-4 right-4 z-40 w-72 h-52 rounded-lg overflow-hidden shadow-lg border border-gray-200 dark:border-gray-700">
-                    <button
-                        onClick={() => mainPreviewRef.current?.scrollIntoView({ behavior: "smooth" })}
-                        className="absolute top-1.5 right-1.5 z-10 w-6 h-6 flex items-center justify-center rounded-full bg-black/50 text-white text-xs hover:bg-black/70 transition"
-                        title="메인 미리보기로 이동"
-                    >
-                        ↑
-                    </button>
-                    <Keyboard3D selected={selected} mini />
+            {/* 3D 확대 모달 */}
+            {previewExpanded && (
+                <div className="fixed inset-0 z-50 bg-black/70 flex items-center justify-center p-8" onClick={() => setPreviewExpanded(false)}>
+                    <div className="relative w-full max-w-4xl h-[70vh] bg-white dark:bg-gray-800 rounded-xl overflow-hidden shadow-2xl" onClick={(e) => e.stopPropagation()}>
+                        <button
+                            onClick={() => setPreviewExpanded(false)}
+                            className="absolute top-3 right-3 z-10 w-8 h-8 flex items-center justify-center rounded-full bg-black/40 text-white hover:bg-black/60 transition"
+                        >
+                            <svg className="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M6 18L18 6M6 6l12 12" />
+                            </svg>
+                        </button>
+                        <Keyboard3D selected={selected} expanded />
+                    </div>
                 </div>
             )}
 
