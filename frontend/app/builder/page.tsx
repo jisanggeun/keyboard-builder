@@ -444,20 +444,20 @@ function BuilderContent() {
                 {/* 메인: 탭 + 파츠 리스트 */}
                 <div className="flex-1 min-w-0">
                     {/* 탭 */}
-                    <div className="flex gap-1 mb-4 overflow-x-auto pb-1">
+                    <div className="flex gap-1.5 mb-4 overflow-x-auto pb-1">
                         {tabs.map((tab) => (
                             <button
                                 key={tab.key}
                                 onClick={() => setActiveTab(tab.key)}
-                                className={`relative px-4 py-2 rounded-lg text-sm font-medium whitespace-nowrap transition-colors ${
+                                className={`relative px-4 py-2 rounded-lg text-sm font-medium whitespace-nowrap border transition-colors ${
                                     activeTab === tab.key
-                                        ? "bg-blue-500 text-white dark:bg-blue-600"
-                                        : "bg-white text-gray-600 hover:bg-gray-100 dark:bg-gray-800 dark:text-gray-300 dark:hover:bg-gray-700"
+                                        ? "bg-blue-500 text-white border-blue-500 dark:bg-blue-600 dark:border-blue-600 shadow-sm"
+                                        : "bg-white text-gray-600 border-gray-200 hover:bg-gray-50 hover:border-gray-300 dark:bg-gray-800 dark:text-gray-300 dark:border-gray-600 dark:hover:bg-gray-700"
                                 }`}
                             >
                                 {tab.label}
                                 {tab.selected && (
-                                    <span className="absolute -top-1 -right-1 w-2.5 h-2.5 rounded-full bg-green-400 border-2 border-gray-50 dark:border-gray-900" />
+                                    <span className="absolute -top-1 -right-1 w-2.5 h-2.5 rounded-full bg-green-400 border-2 border-white dark:border-gray-900" />
                                 )}
                             </button>
                         ))}
@@ -507,9 +507,16 @@ function BuilderContent() {
                                     </button>
                                 )}
                             </div>
-                            <div className="space-y-2.5">
+                            <div className="space-y-2">
                                 {selectedParts.map((part) => (
-                                    <div key={part.label} className="flex items-center justify-between text-sm">
+                                    <div
+                                        key={part.label}
+                                        className={`flex items-center justify-between text-sm p-2.5 rounded-lg border transition-colors ${
+                                            part.name
+                                                ? "bg-blue-50 border-blue-100 dark:bg-blue-900/20 dark:border-blue-800/40"
+                                                : "bg-gray-50 border-gray-100 border-dashed dark:bg-gray-700/30 dark:border-gray-700"
+                                        }`}
+                                    >
                                         <span className="text-gray-500 dark:text-gray-400 w-20 shrink-0 font-medium">{part.label}</span>
                                         {part.name ? (
                                             <>
@@ -517,7 +524,7 @@ function BuilderContent() {
                                                 <span className="text-gray-500 dark:text-gray-400 shrink-0">{part.price}</span>
                                             </>
                                         ) : (
-                                            <span className="flex-1 text-gray-400 dark:text-gray-600 mx-2">-</span>
+                                            <span className="flex-1 text-gray-400 dark:text-gray-500 mx-2">미선택</span>
                                         )}
                                     </div>
                                 ))}
