@@ -121,3 +121,51 @@ export interface SelectedParts {
     switch: Switch | null;
     keycap: Keycap | null;
 }
+
+// 빌드 저장/불러오기
+export interface Build {
+    id: number;
+    name: string;
+    user_id: number;
+    created_at: string;
+    updated_at: string;
+    pcb: PCB | null;
+    case: Case | null;
+    plate: Plate | null;
+    stabilizer: Stabilizer | null;
+    switch: Switch | null;
+    keycap: Keycap | null;
+}
+
+export interface BuildListItem {
+    id: number;
+    name: string;
+    created_at: string;
+    updated_at: string;
+    has_pcb: boolean;
+    has_case: boolean;
+    has_plate: boolean;
+    has_stabilizer: boolean;
+    has_switch: boolean;
+    has_keycap: boolean;
+}
+
+export interface BuildCreateData {
+    name: string;
+    pcb_id?: number | null;
+    case_id?: number | null;
+    plate_id?: number | null;
+    stabilizer_id?: number | null;
+    switch_id?: number | null;
+    keycap_id?: number | null;
+}
+
+export interface BuildUpdateData {
+    name?: string;
+    pcb_id?: number | null;
+    case_id?: number | null;
+    plate_id?: number | null;
+    stabilizer_id?: number | null;
+    switch_id?: number | null;
+    keycap_id?: number | null;
+}
