@@ -5,6 +5,14 @@ export type SwitchType = "MX" | "Alps" | "Choc";
 export type StabilizerType = "Screw-in" | "Plate-mount" | "Snap-in";
 export type KeycapProfile = "Cherry" | "OEM" | "SA" | "DSA" | "MT3";
 
+// Compatible Group - 물리적 호환성 그룹
+export interface CompatibleGroup {
+    id: number;
+    name: string;
+    layout: LayoutType;
+    description: string | null;
+}
+
 export interface PCB {
     id: number;
     name: string;
@@ -16,6 +24,8 @@ export interface PCB {
     rgb: boolean;
     price: number | null;
     image_url: string | null;
+    compatible_group_id: number | null;
+    compatible_group_name: string | null;
 }
 
 export interface Case {
@@ -29,6 +39,8 @@ export interface Case {
     weight: number | null;
     price: number | null;
     image_url: string | null;
+    compatible_group_id: number | null;
+    compatible_group_name: string | null;
 }
 
 export interface Plate {
@@ -40,6 +52,8 @@ export interface Plate {
     switch_type: SwitchType;
     price: number | null;
     image_url: string | null;
+    compatible_group_id: number | null;
+    compatible_group_name: string | null;
 }
 
 export interface Stabilizer {
@@ -83,6 +97,7 @@ export interface AllParts {
     stabilizers: Stabilizer[];
     switches: Switch[];
     keycaps: Keycap[];
+    compatible_groups: CompatibleGroup[];
 }
 
 // 호환성 검사 결과

@@ -5,6 +5,7 @@ from app.schemas.parts import (
     StabilizerBase, StabilizerCreate, StabilizerResponse,
     SwitchBase, SwitchCreate, SwitchResponse,
     KeycapBase, KeycapCreate, KeycapResponse,
+    CompatibleGroupResponse,
     AllPartsResponse
 )
 from app.schemas.auth import UserCreate, UserLogin, UserResponse, TokenResponse

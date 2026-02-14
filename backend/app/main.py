@@ -1,7 +1,7 @@
 from fastapi import FastAPI
 from fastapi.middleware.cors import CORSMiddleware
 from app.database import engine, Base
-from app.models import PCB, Case, Plate, Stabilizer, Switch, Keycap, User
+from app.models import PCB, Case, Plate, Stabilizer, Switch, Keycap, CompatibleGroup, User
 from app.routers import parts_router, auth_router
 
 # 서버 시작 시 테이블 생성

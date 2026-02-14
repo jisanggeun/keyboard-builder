@@ -1,12 +1,21 @@
 from pydantic import BaseModel
-from typing import Optional
-from typing import List
+from typing import Optional, List
 from app.models.parts import (
     LayoutType, MountingType, SwitchType,
     StabilizerType, KeycapProfile
 )
 
-# PCB Common fields
+# CompatibleGroup
+class CompatibleGroupResponse(BaseModel):
+    id: int
+    name: str
+    layout: LayoutType
+    description: Optional[str] = None
+
+    class Config:
+        from_attributes = True
+
+# PCB
 class PCBBase(BaseModel):
     name: str
     manufacturer: Optional[str] = None
@@ -18,13 +27,13 @@ class PCBBase(BaseModel):
     price: Optional[float] = None
     image_url: Optional[str] = None
 
-# PCB 생성용 (POST Request)
 class PCBCreate(PCBBase):
-    pass
+    compatible_group_id: Optional[int] = None
 
-# PCB 응답용 (GET Response)
 class PCBResponse(PCBBase):
     id: int
+    compatible_group_id: Optional[int] = None
+    compatible_group_name: Optional[str] = None
 
     class Config:
         from_attributes = True
@@ -42,10 +51,13 @@ class CaseBase(BaseModel):
     image_url: Optional[str] = None
 
 class CaseCreate(CaseBase):
-    pass
+    compatible_group_id: Optional[int] = None
 
 class CaseResponse(CaseBase):
     id: int
+    compatible_group_id: Optional[int] = None
+    compatible_group_name: Optional[str] = None
+
     class Config:
         from_attributes = True
 
@@ -60,14 +72,17 @@ class PlateBase(BaseModel):
     image_url: Optional[str] = None
 
 class PlateCreate(PlateBase):
-    pass
+    compatible_group_id: Optional[int] = None
 
 class PlateResponse(PlateBase):
     id: int
+    compatible_group_id: Optional[int] = None
+    compatible_group_name: Optional[str] = None
+
     class Config:
         from_attributes = True
 
-# Stabilizer 
+# Stabilizer
 class StabilizerBase(BaseModel):
     name: str
     manufacturer: Optional[str] = None
@@ -104,7 +119,7 @@ class SwitchResponse(SwitchBase):
     class Config:
         from_attributes = True
 
-# Keycap 
+# Keycap
 class KeycapBase(BaseModel):
     name: str
     manufacturer: Optional[str] = None
@@ -129,10 +144,4 @@ class AllPartsResponse(BaseModel):
     stabilizers: List[StabilizerResponse]
     switches: List[SwitchResponse]
     keycaps: List[KeycapResponse]
-
-'''
-Model = DB Table 구조
-Schema = API Request/Response 구조
-
-클라이언드 -> Schema로 검증 -> 서버 -> Model로 DB 저장
-'''
+    compatible_groups: List[CompatibleGroupResponse]
