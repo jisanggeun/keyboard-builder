@@ -8,6 +8,7 @@ interface User {
     id: number;
     email: string;
     nickname: string | null;
+    profile_image: string | null;
     created_at: string;
 }
 

@@ -2,9 +2,11 @@
 
 import Link from "next/link";
 import { useAuth } from "@/lib/auth-context";
+import { UserMenu } from "@/components/user-menu";
+import { ThemeToggle } from "@/components/theme-toggle";
 
 export default function Home() {
-    const { user, logout, isLoading } = useAuth();
+    const { user, isLoading } = useAuth();
 
     return (
         <main className="min-h-screen bg-gray-50 dark:bg-gray-900">
@@ -20,19 +22,10 @@ export default function Home() {
                         </p>
                     </div>
                     <div className="flex items-center gap-3">
+                        <ThemeToggle />
                         {!isLoading && (
                             user ? (
-                                <div className="flex items-center gap-3">
-                                    <span className="text-sm text-gray-700 dark:text-gray-300">
-                                        {user.nickname || user.email}
-                                    </span>
-                                    <button
-                                        onClick={logout}
-                                        className="text-sm text-gray-500 hover:text-red-500 transition"
-                                    >
-                                        로그아웃
-                                    </button>
-                                </div>
+                                <UserMenu />
                             ) : (
                                 <Link
                                     href="/login"

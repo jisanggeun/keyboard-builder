@@ -16,6 +16,7 @@ import { useAllParts, useBuilds, useSaveBuild, useUpdateBuild, useDeleteBuild } 
 import { PartsFilter, applyFilters, toggleFilter } from "@/components/parts-filter";
 import { getBuild } from "@/lib/api";
 import { useAuth } from "@/lib/auth-context";
+import { UserMenu } from "@/components/user-menu";
 import {
     saveToLocalStorage,
     loadFromLocalStorage,
@@ -46,7 +47,7 @@ export default function BuilderPage() {
 }
 
 function BuilderContent() {
-    const { user, token, logout, isLoading: authLoading } = useAuth();
+    const { user, token, isLoading: authLoading } = useAuth();
     const searchParams = useSearchParams();
 
     const { data } = useAllParts();
@@ -411,19 +412,14 @@ function BuilderContent() {
                     </div>
                     <div className="flex items-center gap-2 sm:gap-4">
                         <ThemeToggle />
+                        <a href="/" className="p-1.5 rounded-lg text-gray-500 dark:text-gray-400 hover:bg-gray-100 dark:hover:bg-gray-700 hover:text-gray-900 dark:hover:text-white transition-colors" title="홈">
+                            <svg className="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M3 12l2-2m0 0l7-7 7 7M5 10v10a1 1 0 001 1h3m10-11l2 2m-2-2v10a1 1 0 01-1 1h-3m-4 0a1 1 0 01-1-1v-4a1 1 0 011-1h2a1 1 0 011 1v4a1 1 0 01-1 1h-2z" />
+                            </svg>
+                        </a>
                         {!authLoading && (
                             user ? (
-                                <div className="flex items-center gap-2">
-                                    <span className="text-xs sm:text-sm text-gray-600 dark:text-gray-300">
-                                        {user.nickname || user.email}
-                                    </span>
-                                    <button
-                                        onClick={logout}
-                                        className="text-xs sm:text-sm text-gray-500 hover:text-red-500 transition"
-                                    >
-                                        로그아웃
-                                    </button>
-                                </div>
+                                <UserMenu />
                             ) : (
                                 <Link
                                     href="/login"
@@ -433,9 +429,6 @@ function BuilderContent() {
                                 </Link>
                             )
                         )}
-                        <a href="/" className="text-sm sm:text-base text-gray-600 dark:text-gray-300 hover:text-gray-900 dark:hover:text-white transition">
-                            홈으로
-                        </a>
                     </div>
                 </div>
             </header>
