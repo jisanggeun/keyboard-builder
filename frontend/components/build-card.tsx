@@ -9,10 +9,12 @@ import { Badge } from "@/components/ui/badge";
 interface BuildCardProps {
     build: PublicBuild;
     onLike?: () => void;
+    onSelect?: () => void;
     isLiking?: boolean;
+    isSelected?: boolean;
 }
 
-export function BuildCard({ build, onLike, isLiking }: BuildCardProps) {
+export function BuildCard({ build, onLike, onSelect, isLiking, isSelected }: BuildCardProps) {
     const selected: SelectedParts = useMemo(() => ({
         pcb: build.pcb,
         case: build.case,
@@ -35,9 +37,14 @@ export function BuildCard({ build, onLike, isLiking }: BuildCardProps) {
     ].filter(Boolean).length;
 
     return (
-        <Card className="hover:shadow-md transition-shadow overflow-hidden">
+        <Card
+            className={`hover:shadow-md transition-all overflow-hidden cursor-pointer ${
+                isSelected ? "ring-2 ring-blue-500 dark:ring-blue-400" : ""
+            }`}
+            onClick={onSelect}
+        >
             {/* 3D Preview */}
-            <div className="h-40 w-full">
+            <div className="h-44 w-full">
                 <Keyboard3D selected={selected} mini />
             </div>
 
