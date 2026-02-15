@@ -8,7 +8,6 @@ import { PostCategory, PostListItem, SelectedParts } from "@/lib/types";
 import { SiteHeader } from "@/components/site-header";
 import { Keyboard3D } from "@/components/keyboard-3d";
 import { Button } from "@/components/ui/button";
-import { Badge } from "@/components/ui/badge";
 
 const CATEGORY_LABELS: Record<PostCategory | "all", string> = {
     all: "전체",
