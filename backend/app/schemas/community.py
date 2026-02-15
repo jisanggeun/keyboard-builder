@@ -1,3 +1,5 @@
+from __future__ import annotations
+
 from pydantic import BaseModel
 from typing import Optional
 from datetime import datetime
@@ -55,6 +57,8 @@ class CommentResponse(BaseModel):
     id: int
     content: str
     author: CommentAuthor
+    parent_comment_id: Optional[int] = None
+    replies: list[CommentResponse] = []
     created_at: datetime
 
     class Config:
@@ -63,6 +67,7 @@ class CommentResponse(BaseModel):
 
 class CommentCreate(BaseModel):
     content: str
+    parent_comment_id: Optional[int] = None
 
 
 class PostResponse(BaseModel):
@@ -86,3 +91,16 @@ class PostResponse(BaseModel):
 class PostLikeResponse(BaseModel):
     liked: bool
     like_count: int
+
+
+class MyCommentResponse(BaseModel):
+    id: int
+    content: str
+    post_id: int
+    post_title: str
+    parent_comment_id: Optional[int] = None
+    reply_count: int = 0
+    created_at: datetime
+
+
+CommentResponse.model_rebuild()

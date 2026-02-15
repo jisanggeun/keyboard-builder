@@ -4,11 +4,13 @@ import {
     updateProfile, changePassword, deleteAccount,
     getPosts, getPost, createPost, updatePost, deletePost, togglePostLike,
     getComments, createComment, deleteComment,
+    getMyPosts, getMyComments,
 } from "./api"
 import {
     AllParts, BuildListItem, Build, BuildCreateData, BuildUpdateData,
     LikeResponse, UserUpdate, PasswordChange,
     PostListItem, PostDetail, PostCreateData, PostCategory, CommentData,
+    MyComment,
 } from "./types"
 
 /** Read the freshest token directly from localStorage to avoid stale closures */
@@ -23,6 +25,7 @@ export function useAllParts() {
     return useQuery<AllParts>({
         queryKey: ["allParts"],
         queryFn: getAllParts,
+        staleTime: 1000 * 60 * 30, // 30 minutes - parts data rarely changes
     })
 }
 
@@ -140,6 +143,7 @@ export function useDeletePost(token: string | null) {
         mutationFn: (postId: number) => deletePost(token!, postId),
         onSuccess: () => {
             queryClient.invalidateQueries({ queryKey: ["posts"] })
+            queryClient.invalidateQueries({ queryKey: ["myPosts"] })
         },
     })
 }
@@ -218,8 +222,8 @@ export function useComments(postId: number | null) {
 export function useCreateComment(token: string | null) {
     const queryClient = useQueryClient()
     return useMutation({
-        mutationFn: ({ postId, content }: { postId: number; content: string }) =>
-            createComment(token!, postId, content),
+        mutationFn: ({ postId, content, parentCommentId }: { postId: number; content: string; parentCommentId?: number }) =>
+            createComment(token!, postId, content, parentCommentId),
         onMutate: async ({ postId }) => {
             // Optimistically increment comment_count in all post list caches
             queryClient.getQueriesData<PostListItem[]>({ queryKey: ["posts"] }).forEach(([key, data]) => {
@@ -271,6 +275,25 @@ export function useDeleteComment(token: string | null, postId?: number | null) {
         onSettled: () => {
             queryClient.invalidateQueries({ queryKey: ["comments"] })
             queryClient.invalidateQueries({ queryKey: ["posts"] })
+            queryClient.invalidateQueries({ queryKey: ["myComments"] })
         },
+    })
+}
+
+// My Activity
+
+export function useMyPosts(token: string | null) {
+    return useQuery<PostListItem[]>({
+        queryKey: ["myPosts"],
+        queryFn: () => getMyPosts(token!),
+        enabled: !!token,
+    })
+}
+
+export function useMyComments(token: string | null) {
+    return useQuery<MyComment[]>({
+        queryKey: ["myComments"],
+        queryFn: () => getMyComments(token!),
+        enabled: !!token,
     })
 }

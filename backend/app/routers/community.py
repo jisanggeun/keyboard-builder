@@ -1,5 +1,6 @@
 from typing import List, Optional
 
+import sqlalchemy as sa
 from fastapi import APIRouter, Depends, HTTPException, Query, status
 from sqlalchemy import func as sa_func
 from sqlalchemy.orm import Session, joinedload, subqueryload
@@ -13,6 +14,7 @@ from app.models.community import Post, Comment, PostLike, PostCategory
 from app.schemas.community import (
     PostCreate, PostUpdate, PostListItem, PostResponse, PostAuthor,
     CommentCreate, CommentResponse, CommentAuthor, PostLikeResponse,
+    MyCommentResponse,
 )
 
 router = APIRouter(prefix="/api/community", tags=["community"])
@@ -79,20 +81,25 @@ def _build_post_list_item(post, comment_count: int = 0, is_liked: bool = False) 
     )
 
 
-def _build_comment_response(comment: Comment) -> dict:
-    return {
-        "id": comment.id,
-        "content": comment.content,
-        "author": CommentAuthor(
+def _build_comment_response(comment: Comment, depth: int = 0) -> CommentResponse:
+    replies = []
+    if depth < 1:
+        replies = [_build_comment_response(r, depth + 1) for r in comment.replies]
+    return CommentResponse(
+        id=comment.id,
+        content=comment.content,
+        author=CommentAuthor(
             id=comment.user.id,
             nickname=comment.user.nickname,
             profile_image=comment.user.profile_image,
         ),
-        "created_at": comment.created_at,
-    }
+        parent_comment_id=comment.parent_comment_id,
+        replies=replies,
+        created_at=comment.created_at,
+    )
 
 
-def _posts_list_query(db: Session):
+def _posts_list_query(db: Session, user_id: Optional[int] = None):
     """Lightweight query for post lists - no comments loaded."""
     comment_count_sq = (
         db.query(
@@ -102,8 +109,18 @@ def _posts_list_query(db: Session):
         .group_by(Comment.post_id)
         .subquery()
     )
+
+    liked_sq = sa.literal(False).label("is_liked")
+    if user_id is not None:
+        liked_sq = (
+            sa.exists(
+                sa.select(PostLike.id)
+                .where(PostLike.post_id == Post.id, PostLike.user_id == user_id)
+            )
+        ).label("is_liked")
+
     return (
-        db.query(Post, sa_func.coalesce(comment_count_sq.c.cnt, 0).label("comment_count"))
+        db.query(Post, sa_func.coalesce(comment_count_sq.c.cnt, 0).label("comment_count"), liked_sq)
         .outerjoin(comment_count_sq, Post.id == comment_count_sq.c.post_id)
         .options(
             joinedload(Post.user),
@@ -124,6 +141,7 @@ def _posts_detail_query(db: Session):
         .options(
             joinedload(Post.user),
             joinedload(Post.comments).joinedload(Comment.user),
+            joinedload(Post.comments).joinedload(Comment.replies).joinedload(Comment.user),
             joinedload(Post.build).joinedload(Build.pcb).joinedload(PCB.compatible_group),
             joinedload(Post.build).joinedload(Build.case).joinedload(Case.compatible_group),
             joinedload(Post.build).joinedload(Build.plate).joinedload(Plate.compatible_group),
@@ -136,6 +154,66 @@ def _posts_detail_query(db: Session):
 
 # --- Posts ---
 
+@router.get("/me/posts", response_model=List[PostListItem])
+def get_my_posts(
+    limit: int = 20,
+    offset: int = 0,
+    db: Session = Depends(get_db),
+    current_user: User = Depends(get_current_user),
+):
+    query = _posts_list_query(db, current_user.id)
+    query = query.filter(Post.user_id == current_user.id)
+    query = query.order_by(Post.created_at.desc())
+    rows = query.offset(offset).limit(limit).all()
+    return [_build_post_list_item(post, comment_count, is_liked) for post, comment_count, is_liked in rows]
+
+
+@router.get("/me/comments", response_model=List[MyCommentResponse])
+def get_my_comments(
+    limit: int = 20,
+    offset: int = 0,
+    db: Session = Depends(get_db),
+    current_user: User = Depends(get_current_user),
+):
+    reply_count_sq = (
+        db.query(
+            Comment.parent_comment_id,
+            sa_func.count(Comment.id).label("cnt"),
+        )
+        .filter(Comment.parent_comment_id.isnot(None))
+        .group_by(Comment.parent_comment_id)
+        .subquery()
+    )
+
+    rows = (
+        db.query(
+            Comment,
+            Post.title.label("post_title"),
+            sa_func.coalesce(reply_count_sq.c.cnt, 0).label("reply_count"),
+        )
+        .join(Post, Comment.post_id == Post.id)
+        .outerjoin(reply_count_sq, Comment.id == reply_count_sq.c.parent_comment_id)
+        .filter(Comment.user_id == current_user.id)
+        .order_by(Comment.created_at.desc())
+        .offset(offset)
+        .limit(limit)
+        .all()
+    )
+
+    return [
+        MyCommentResponse(
+            id=comment.id,
+            content=comment.content,
+            post_id=comment.post_id,
+            post_title=post_title,
+            parent_comment_id=comment.parent_comment_id,
+            reply_count=reply_count,
+            created_at=comment.created_at,
+        )
+        for comment, post_title, reply_count in rows
+    ]
+
+
 @router.get("/posts", response_model=List[PostListItem])
 def get_posts(
     category: Optional[PostCategory] = None,
@@ -145,7 +223,8 @@ def get_posts(
     db: Session = Depends(get_db),
     current_user: Optional[User] = Depends(get_optional_user),
 ):
-    query = _posts_list_query(db)
+    user_id = current_user.id if current_user else None
+    query = _posts_list_query(db, user_id)
     if category:
         query = query.filter(Post.category == category)
 
@@ -155,8 +234,7 @@ def get_posts(
         query = query.order_by(Post.created_at.desc())
 
     rows = query.offset(offset).limit(limit).all()
-    liked_ids = _get_liked_post_ids(db, current_user)
-    return [_build_post_list_item(post, comment_count, post.id in liked_ids) for post, comment_count in rows]
+    return [_build_post_list_item(post, comment_count, is_liked) for post, comment_count, is_liked in rows]
 
 
 @router.get("/posts/{post_id}", response_model=PostResponse)
@@ -178,7 +256,8 @@ def get_post(
         )
         is_liked = existing is not None
 
-    comments = [_build_comment_response(c) for c in post.comments]
+    top_level_comments = [c for c in post.comments if c.parent_comment_id is None]
+    comments = [_build_comment_response(c) for c in top_level_comments]
 
     return PostResponse(
         id=post.id,
@@ -228,7 +307,7 @@ def create_post(
     db.refresh(post)
 
     if post.build_id:
-        post = _posts_query(db).filter(Post.id == post.id).first()
+        post = _posts_detail_query(db).filter(Post.id == post.id).first()
         build_data = _get_build_data(post)
 
     return PostResponse(
@@ -271,7 +350,8 @@ def update_post(
     db.commit()
     db.refresh(post)
 
-    comments = [_build_comment_response(c) for c in post.comments]
+    top_level_comments = [c for c in post.comments if c.parent_comment_id is None]
+    comments = [_build_comment_response(c) for c in top_level_comments]
 
     return PostResponse(
         id=post.id,
@@ -327,12 +407,20 @@ def toggle_post_like(
 
     if existing:
         db.delete(existing)
-        post.like_count = max(0, post.like_count - 1)
+        db.execute(
+            sa.update(Post)
+            .where(Post.id == post_id)
+            .values(like_count=sa.func.greatest(0, Post.like_count - 1))
+        )
         liked = False
     else:
         like = PostLike(user_id=current_user.id, post_id=post_id)
         db.add(like)
-        post.like_count = post.like_count + 1
+        db.execute(
+            sa.update(Post)
+            .where(Post.id == post_id)
+            .values(like_count=Post.like_count + 1)
+        )
         liked = True
 
     db.commit()
@@ -353,8 +441,11 @@ def get_comments(
 
     comments = (
         db.query(Comment)
-        .options(joinedload(Comment.user))
-        .filter(Comment.post_id == post_id)
+        .options(
+            joinedload(Comment.user),
+            joinedload(Comment.replies).joinedload(Comment.user),
+        )
+        .filter(Comment.post_id == post_id, Comment.parent_comment_id.is_(None))
         .order_by(Comment.created_at.asc())
         .all()
     )
@@ -372,16 +463,37 @@ def create_comment(
     if not post:
         raise HTTPException(status_code=404, detail="Post not found")
 
+    if data.parent_comment_id is not None:
+        parent = db.query(Comment).filter(Comment.id == data.parent_comment_id).first()
+        if not parent:
+            raise HTTPException(status_code=404, detail="Parent comment not found")
+        if parent.post_id != post_id:
+            raise HTTPException(status_code=400, detail="Parent comment does not belong to this post")
+        if parent.parent_comment_id is not None:
+            raise HTTPException(status_code=400, detail="Cannot reply to a reply")
+
     comment = Comment(
         user_id=current_user.id,
         post_id=post_id,
+        parent_comment_id=data.parent_comment_id,
         content=data.content,
     )
     db.add(comment)
     db.commit()
     db.refresh(comment)
 
-    return _build_comment_response(comment)
+    return CommentResponse(
+        id=comment.id,
+        content=comment.content,
+        author=CommentAuthor(
+            id=current_user.id,
+            nickname=current_user.nickname,
+            profile_image=current_user.profile_image,
+        ),
+        parent_comment_id=comment.parent_comment_id,
+        replies=[],
+        created_at=comment.created_at,
+    )
 
 
 @router.delete("/comments/{comment_id}", status_code=status.HTTP_204_NO_CONTENT)
@@ -400,12 +512,5 @@ def delete_comment(
     db.commit()
 
 
-# --- Helper functions ---
-
-def _get_liked_post_ids(db: Session, user: Optional[User]) -> set:
-    if user is None:
-        return set()
-    likes = db.query(PostLike.post_id).filter(PostLike.user_id == user.id).all()
-    return {like.post_id for like in likes}
 
 

@@ -8,6 +8,9 @@ venv/
 node_modules/
 .next/
 
+# Database
+*.db
+
 # IDE
 .vscode/
 .idea/

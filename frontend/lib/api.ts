@@ -2,6 +2,7 @@ import {
     AllParts, Build, BuildListItem, BuildCreateData, BuildUpdateData,
     PublicBuild, LikeResponse, UserUpdate, PasswordChange,
     PostListItem, PostDetail, PostCreateData, PostCategory, CommentData,
+    MyComment,
 } from "./types";
 
 const API_URL = process.env.NEXT_PUBLIC_API_URL || "http://localhost:8000/api";
@@ -266,14 +267,23 @@ export async function getComments(postId: number): Promise<CommentData[]> {
     return res.json();
 }
 
-export async function createComment(token: string, postId: number, content: string): Promise<CommentData> {
+export async function createComment(
+    token: string,
+    postId: number,
+    content: string,
+    parentCommentId?: number,
+): Promise<CommentData> {
+    const body: Record<string, unknown> = { content };
+    if (parentCommentId !== undefined) {
+        body.parent_comment_id = parentCommentId;
+    }
     const res = await fetch(`${API_URL}/community/posts/${postId}/comments`, {
         method: "POST",
         headers: {
             "Content-Type": "application/json",
             Authorization: `Bearer ${token}`,
         },
-        body: JSON.stringify({ content }),
+        body: JSON.stringify(body),
     });
     if (!res.ok) {
         const error = await res.json();
@@ -291,4 +301,26 @@ export async function deleteComment(token: string, commentId: number): Promise<v
         const error = await res.json();
         throw new Error(error.detail || "Failed to delete comment");
     }
+}
+
+export async function getMyPosts(token: string): Promise<PostListItem[]> {
+    const res = await fetch(`${API_URL}/community/me/posts`, {
+        headers: { Authorization: `Bearer ${token}` },
+    });
+    if (!res.ok) {
+        const error = await res.json();
+        throw new Error(error.detail || "Failed to fetch my posts");
+    }
+    return res.json();
+}
+
+export async function getMyComments(token: string): Promise<MyComment[]> {
+    const res = await fetch(`${API_URL}/community/me/comments`, {
+        headers: { Authorization: `Bearer ${token}` },
+    });
+    if (!res.ok) {
+        const error = await res.json();
+        throw new Error(error.detail || "Failed to fetch my comments");
+    }
+    return res.json();
 }

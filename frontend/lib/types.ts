@@ -235,6 +235,8 @@ export interface CommentData {
     id: number;
     content: string;
     author: PostAuthor;
+    parent_comment_id: number | null;
+    replies: CommentData[];
     created_at: string;
 }
 
@@ -258,4 +260,15 @@ export interface PostCreateData {
     content: string;
     category: PostCategory;
     build_id?: number | null;
+}
+
+// My Activity
+export interface MyComment {
+    id: number;
+    content: string;
+    post_id: number;
+    post_title: string;
+    parent_comment_id: number | null;
+    reply_count: number;
+    created_at: string;
 }
