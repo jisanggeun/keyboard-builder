@@ -835,13 +835,24 @@ function LazyCanvas({ children, className }: { children: React.ReactNode; classN
     )
 }
 
+const MINI_CAMERA_Z: Record<string, number> = {
+    "60%": 9,
+    "65%": 10,
+    "75%": 11,
+    "TKL": 13,
+    "Full": 15,
+}
+
 export function Keyboard3D({ selected, mini = false, expanded = false }: Keyboard3DProps) {
+    const layout = selected.pcb?.layout || selected.case?.layout || "60%"
+    const miniZ = MINI_CAMERA_Z[layout] || 11
+
     const cameraPos: [number, number, number] = expanded
         ? [0, 10, 16]
         : mini
-            ? [0, 12, 8]
+            ? [0, 6, miniZ]
             : [0, 8, 12]
-    const fov = expanded ? 35 : mini ? 50 : 40
+    const fov = expanded ? 35 : mini ? 40 : 40
 
     const canvas = (
         <Canvas
@@ -850,7 +861,7 @@ export function Keyboard3D({ selected, mini = false, expanded = false }: Keyboar
         >
             <ambientLight intensity={mini ? 0.5 : 0.4} />
             <directionalLight position={[10, 10, 5]} intensity={mini ? 0.8 : 1} castShadow={!mini} />
-            {!mini && <directionalLight position={[-10, 5, -5]} intensity={0.3} />}
+            <directionalLight position={[-10, 5, -5]} intensity={0.3} />
             <KeyboardModel selected={selected} mini={mini} />
             {!mini && (
                 <OrbitControls
