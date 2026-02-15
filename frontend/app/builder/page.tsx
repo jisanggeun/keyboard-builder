@@ -178,9 +178,10 @@ function BuilderContent() {
     const hasAnySelected = selected.pcb || selected.case || selected.plate ||
         selected.stabilizer || selected.switch || selected.keycap;
 
-    const handleSaveBuild = useCallback((name: string) => {
+    const handleSaveBuild = useCallback((name: string, isPublic: boolean) => {
         const buildData = {
             name,
+            is_public: isPublic,
             pcb_id: selected.pcb?.id ?? null,
             case_id: selected.case?.id ?? null,
             plate_id: selected.plate?.id ?? null,
