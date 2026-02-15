@@ -2,11 +2,10 @@
 
 import { useState, useMemo, useEffect, useCallback, useRef, Suspense } from "react";
 import { useSearchParams } from "next/navigation";
-import Link from "next/link";
 import { Card } from "@/components/ui/card";
 import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
-import { ThemeToggle } from "@/components/theme-toggle";
+import { SiteHeader } from "@/components/site-header";
 import { Keyboard3D } from "@/components/keyboard-3d";
 import { SaveBuildDialog } from "@/components/save-build-dialog";
 import { LoadBuildsDialog } from "@/components/load-builds-dialog";
@@ -16,7 +15,6 @@ import { useAllParts, useBuilds, useSaveBuild, useUpdateBuild, useDeleteBuild } 
 import { PartsFilter, applyFilters, toggleFilter } from "@/components/parts-filter";
 import { getBuild } from "@/lib/api";
 import { useAuth } from "@/lib/auth-context";
-import { UserMenu } from "@/components/user-menu";
 import {
     saveToLocalStorage,
     loadFromLocalStorage,
@@ -47,7 +45,7 @@ export default function BuilderPage() {
 }
 
 function BuilderContent() {
-    const { user, token, isLoading: authLoading } = useAuth();
+    const { user, token } = useAuth();
     const searchParams = useSearchParams();
 
     const { data } = useAllParts();
@@ -400,39 +398,7 @@ function BuilderContent() {
 
     return (
         <main className="min-h-screen bg-gray-50 dark:bg-gray-900">
-            {/* 헤더 */}
-            <header className="bg-white dark:bg-gray-800 border-b dark:border-gray-700 sticky top-0 z-50">
-                <div className="max-w-[1400px] mx-auto px-3 sm:px-4 py-3 sm:py-4 flex items-center justify-between">
-                    <div>
-                        <h1 className="text-xl sm:text-2xl font-bold text-gray-900 dark:text-white">
-                            KeyboardBuilder
-                        </h1>
-                        <p className="text-gray-500 dark:text-gray-400 text-xs sm:text-sm hidden sm:block">
-                            커스텀 키보드 파츠 호환성 검증
-                        </p>
-                    </div>
-                    <div className="flex items-center gap-2 sm:gap-4">
-                        <ThemeToggle />
-                        <a href="/" className="p-1.5 rounded-lg text-gray-500 dark:text-gray-400 hover:bg-gray-100 dark:hover:bg-gray-700 hover:text-gray-900 dark:hover:text-white transition-colors" title="홈">
-                            <svg className="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                                <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M3 12l2-2m0 0l7-7 7 7M5 10v10a1 1 0 001 1h3m10-11l2 2m-2-2v10a1 1 0 01-1 1h-3m-4 0a1 1 0 01-1-1v-4a1 1 0 011-1h2a1 1 0 011 1v4a1 1 0 01-1 1h-2z" />
-                            </svg>
-                        </a>
-                        {!authLoading && (
-                            user ? (
-                                <UserMenu />
-                            ) : (
-                                <Link
-                                    href="/login"
-                                    className="text-xs sm:text-sm bg-gray-900 dark:bg-blue-600 text-white px-3 py-1.5 rounded-lg hover:bg-gray-800 dark:hover:bg-blue-700 transition"
-                                >
-                                    로그인
-                                </Link>
-                            )
-                        )}
-                    </div>
-                </div>
-            </header>
+            <SiteHeader />
 
             <div className="max-w-[1400px] mx-auto px-4 py-6 flex flex-col lg:flex-row gap-6">
                 {/* 메인: 탭 + 파츠 리스트 */}
