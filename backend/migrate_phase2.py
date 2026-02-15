@@ -47,6 +47,18 @@ def run_migration():
             ))
             print("Added build_id column to posts")
 
+        # Add indexes on comments table
+        try:
+            conn.execute(text(
+                "CREATE INDEX IF NOT EXISTS ix_comments_post_id ON comments (post_id)"
+            ))
+            conn.execute(text(
+                "CREATE INDEX IF NOT EXISTS ix_comments_user_id ON comments (user_id)"
+            ))
+            print("Added indexes on comments table")
+        except Exception:
+            pass  # indexes may already exist
+
         conn.commit()
 
     # Create new tables (build_likes, posts, comments, post_likes)

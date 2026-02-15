@@ -32,6 +32,7 @@ class PostListItem(BaseModel):
     title: str
     category: PostCategory
     like_count: int
+    is_liked: bool = False
     comment_count: int = 0
     author: PostAuthor
     build: Optional[BuildResponse] = None

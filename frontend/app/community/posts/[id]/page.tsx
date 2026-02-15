@@ -1,9 +1,10 @@
 "use client";
 
-import { useMemo, useState } from "react";
+import { useState } from "react";
 import { useParams, useRouter } from "next/navigation";
 import Link from "next/link";
 import { useAuth } from "@/lib/auth-context";
+import { SiteHeader } from "@/components/site-header";
 import {
     usePost, useTogglePostLike, useCreateComment, useDeleteComment, useDeletePost,
 } from "@/lib/hooks";
@@ -29,13 +30,14 @@ const CATEGORY_COLORS: Record<PostCategory, string> = {
 export default function PostDetailPage() {
     const params = useParams();
     const router = useRouter();
-    const { user, token } = useAuth();
+    const { user, token, isLoading: authLoading } = useAuth();
     const postId = Number(params.id);
+    const resolvedToken = authLoading ? undefined : token;
 
-    const { data: post, isLoading } = usePost(postId, token);
+    const { data: post, isLoading } = usePost(postId, resolvedToken);
     const toggleLike = useTogglePostLike(token);
     const createComment = useCreateComment(token);
-    const deleteComment = useDeleteComment(token);
+    const deleteComment = useDeleteComment(token, postId);
     const deletePost = useDeletePost(token);
 
     const [commentText, setCommentText] = useState("");
@@ -57,17 +59,14 @@ export default function PostDetailPage() {
         );
     }
 
-    const buildSelected: SelectedParts | null = useMemo(() => {
-        if (!post?.build) return null;
-        return {
-            pcb: post.build.pcb,
-            case: post.build.case,
-            plate: post.build.plate,
-            stabilizer: post.build.stabilizer,
-            switch: post.build.switch,
-            keycap: post.build.keycap,
-        };
-    }, [post?.build]);
+    const buildSelected: SelectedParts | null = post.build ? {
+        pcb: post.build.pcb,
+        case: post.build.case,
+        plate: post.build.plate,
+        stabilizer: post.build.stabilizer,
+        switch: post.build.switch,
+        keycap: post.build.keycap,
+    } : null;
 
     const isAuthor = user?.id === post.author.id;
 
@@ -95,16 +94,7 @@ export default function PostDetailPage() {
 
     return (
         <main className="min-h-screen bg-gray-50 dark:bg-gray-900">
-            <header className="bg-white dark:bg-gray-800 border-b dark:border-gray-700">
-                <div className="max-w-3xl mx-auto px-4 py-4 flex items-center gap-4">
-                    <Link href="/community" className="text-gray-500 hover:text-gray-700 dark:text-gray-400 dark:hover:text-gray-200">
-                        <svg className="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                            <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M15 19l-7-7 7-7" />
-                        </svg>
-                    </Link>
-                    <h1 className="text-xl font-bold text-gray-900 dark:text-white">게시글</h1>
-                </div>
-            </header>
+            <SiteHeader />
 
             <div className="max-w-3xl mx-auto px-4 py-6 space-y-6">
                 {/* Post content */}

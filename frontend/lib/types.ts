@@ -224,6 +224,7 @@ export interface PostListItem {
     title: string;
     category: PostCategory;
     like_count: number;
+    is_liked: boolean;
     comment_count: number;
     author: PostAuthor;
     build: Build | null;

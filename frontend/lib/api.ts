@@ -85,7 +85,7 @@ export async function getPopularBuilds(token?: string | null, limit = 8): Promis
     if (token) {
         headers.Authorization = `Bearer ${token}`;
     }
-    const res = await fetch(`${API_URL}/builds/popular?limit=${limit}`, { headers });
+    const res = await fetch(`${API_URL}/builds/popular?limit=${limit}`, { headers, cache: 'no-store' });
     if (!res.ok) {
         const error = await res.json();
         throw new Error(error.detail || "Failed to fetch popular builds");
@@ -98,7 +98,7 @@ export async function getRecentBuilds(token?: string | null, limit = 8): Promise
     if (token) {
         headers.Authorization = `Bearer ${token}`;
     }
-    const res = await fetch(`${API_URL}/builds/recent?limit=${limit}`, { headers });
+    const res = await fetch(`${API_URL}/builds/recent?limit=${limit}`, { headers, cache: 'no-store' });
     if (!res.ok) {
         const error = await res.json();
         throw new Error(error.detail || "Failed to fetch recent builds");
@@ -110,6 +110,7 @@ export async function toggleBuildLike(token: string, buildId: number): Promise<L
     const res = await fetch(`${API_URL}/builds/${buildId}/like`, {
         method: "POST",
         headers: { Authorization: `Bearer ${token}` },
+        keepalive: true,
     });
     if (!res.ok) {
         const error = await res.json();
@@ -164,7 +165,8 @@ export async function deleteAccount(token: string): Promise<void> {
 // Community
 
 export async function getPosts(
-    params?: { category?: PostCategory; sort?: string; limit?: number; offset?: number }
+    params?: { category?: PostCategory; sort?: string; limit?: number; offset?: number },
+    token?: string | null,
 ): Promise<PostListItem[]> {
     const searchParams = new URLSearchParams();
     if (params?.category) searchParams.set("category", params.category);
@@ -172,7 +174,11 @@ export async function getPosts(
     if (params?.limit) searchParams.set("limit", String(params.limit));
     if (params?.offset) searchParams.set("offset", String(params.offset));
 
-    const res = await fetch(`${API_URL}/community/posts?${searchParams.toString()}`);
+    const headers: Record<string, string> = {};
+    if (token) {
+        headers.Authorization = `Bearer ${token}`;
+    }
+    const res = await fetch(`${API_URL}/community/posts?${searchParams.toString()}`, { headers, cache: 'no-store' });
     if (!res.ok) {
         const error = await res.json();
         throw new Error(error.detail || "Failed to fetch posts");
@@ -185,7 +191,7 @@ export async function getPost(postId: number, token?: string | null): Promise<Po
     if (token) {
         headers.Authorization = `Bearer ${token}`;
     }
-    const res = await fetch(`${API_URL}/community/posts/${postId}`, { headers });
+    const res = await fetch(`${API_URL}/community/posts/${postId}`, { headers, cache: 'no-store' });
     if (!res.ok) {
         const error = await res.json();
         throw new Error(error.detail || "Failed to fetch post");
@@ -242,6 +248,7 @@ export async function togglePostLike(token: string, postId: number): Promise<Lik
     const res = await fetch(`${API_URL}/community/posts/${postId}/like`, {
         method: "POST",
         headers: { Authorization: `Bearer ${token}` },
+        keepalive: true,
     });
     if (!res.ok) {
         const error = await res.json();
