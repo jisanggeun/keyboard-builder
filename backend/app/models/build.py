@@ -1,4 +1,4 @@
-from sqlalchemy import Column, Integer, String, DateTime, ForeignKey
+from sqlalchemy import Column, Integer, String, Boolean, DateTime, ForeignKey
 from sqlalchemy.orm import relationship
 from sqlalchemy.sql import func
 from app.database import Base
@@ -10,6 +10,8 @@ class Build(Base):
     id = Column(Integer, primary_key=True, index=True)
     name = Column(String, nullable=False)
     user_id = Column(Integer, ForeignKey("users.id"), nullable=False)
+    is_public = Column(Boolean, default=False)
+    like_count = Column(Integer, default=0)
 
     pcb_id = Column(Integer, ForeignKey("pcbs.id"), nullable=True)
     case_id = Column(Integer, ForeignKey("cases.id"), nullable=True)
@@ -22,6 +24,7 @@ class Build(Base):
     updated_at = Column(DateTime(timezone=True), server_default=func.now(), onupdate=func.now())
 
     user = relationship("User", back_populates="builds")
+    likes = relationship("BuildLike", back_populates="build", cascade="all, delete-orphan")
     pcb = relationship("PCB", lazy="joined")
     case = relationship("Case", lazy="joined")
     plate = relationship("Plate", lazy="joined")

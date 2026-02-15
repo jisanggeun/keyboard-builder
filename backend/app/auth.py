@@ -71,3 +71,22 @@ def get_current_user(
         )
 
     return user
+
+
+def get_optional_user(
+    token: Optional[str] = Depends(oauth2_scheme),
+    db: Session = Depends(get_db),
+):
+    if token is None:
+        return None
+
+    try:
+        payload = jwt.decode(token, SECRET_KEY, algorithms=[ALGORITHM])
+        sub = payload.get("sub")
+        if sub is None:
+            return None
+    except JWTError:
+        return None
+
+    from app.models.user import User
+    return db.query(User).filter(User.id == int(sub)).first()
