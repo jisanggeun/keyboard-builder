@@ -1,7 +1,7 @@
 "use client"
 
-import { useMemo } from "react"
-import { Canvas } from "@react-three/fiber"
+import { useEffect, useMemo, useRef, useState } from "react"
+import { Canvas, useThree } from "@react-three/fiber"
 import { OrbitControls, RoundedBox, Environment } from "@react-three/drei"
 import * as THREE from "three"
 import { SelectedParts } from "@/lib/types"
@@ -511,7 +511,7 @@ const GROUP_LAYOUTS: Record<string, { keys: KeyEntry[], y: number }[]> = {
     ],
 }
 
-function KeyboardModel({ selected }: Keyboard3DProps) {
+function KeyboardModel({ selected, mini = false }: Keyboard3DProps & { mini?: boolean }) {
     // PCB 레이아웃 (키 배열) - 그룹별 오버라이드 우선
     const pcbLayout = selected.pcb?.layout || "60%"
     const groupName = selected.pcb?.compatible_group_name || selected.case?.compatible_group_name
@@ -685,8 +685,8 @@ function KeyboardModel({ selected }: Keyboard3DProps) {
                 />
             </mesh>
 
-            {/* Mounting Structure */}
-            {selected.case?.mounting_type && (
+            {/* Mounting Structure (skip in mini mode) */}
+            {!mini && selected.case?.mounting_type && (
                 <MountingStructure
                     mountingType={selected.case.mounting_type}
                     caseColor={caseColor}
@@ -757,23 +757,23 @@ function KeyboardModel({ selected }: Keyboard3DProps) {
 
                         return (
                             <group key={`${rowIndex}-${keyIndex}`}>
-                                {/* Plate 스위치 컷아웃 (구멍 표현) */}
-                                {selected.plate && (
+                                {/* Plate 스위치 컷아웃 (mini에서 생략) */}
+                                {!mini && selected.plate && (
                                     <mesh position={[x, 0.017, z]}>
                                         <boxGeometry args={[0.58, 0.008, 0.58]} />
                                         <meshStandardMaterial color="#080808" roughness={0.9} />
                                     </mesh>
                                 )}
-                                {/* Stabilizer (2u 이상 키) */}
-                                {selected.stabilizer && needsStab && (
+                                {/* Stabilizer (mini에서 생략) */}
+                                {!mini && selected.stabilizer && needsStab && (
                                     <Stabilizer
                                         position={[x, 0, z]}
                                         widthU={keyW}
                                         stabName={selected.stabilizer.name}
                                     />
                                 )}
-                                {/* Switch */}
-                                {selected.switch && (
+                                {/* Switch (mini에서 생략 - 키캡 아래라 안 보임) */}
+                                {!mini && selected.switch && (
                                     <Switch
                                         position={[x, 0, z]}
                                         color={switchColor}
@@ -798,6 +798,43 @@ function KeyboardModel({ selected }: Keyboard3DProps) {
     )
 }
 
+// frameloop="demand" 모드에서 초기 1회 렌더를 트리거하는 컴포넌트
+function InvalidateOnMount() {
+    const { invalidate } = useThree()
+    useEffect(() => {
+        invalidate()
+    }, [invalidate])
+    return null
+}
+
+// Intersection Observer로 뷰포트에 보일 때만 마운트
+function LazyCanvas({ children, className }: { children: React.ReactNode; className?: string }) {
+    const ref = useRef<HTMLDivElement>(null)
+    const [visible, setVisible] = useState(false)
+
+    useEffect(() => {
+        const el = ref.current
+        if (!el) return
+        const observer = new IntersectionObserver(
+            ([entry]) => {
+                if (entry.isIntersecting) {
+                    setVisible(true)
+                    observer.disconnect()
+                }
+            },
+            { rootMargin: "100px" }
+        )
+        observer.observe(el)
+        return () => observer.disconnect()
+    }, [])
+
+    return (
+        <div ref={ref} className={className}>
+            {visible ? children : null}
+        </div>
+    )
+}
+
 export function Keyboard3D({ selected, mini = false, expanded = false }: Keyboard3DProps) {
     const cameraPos: [number, number, number] = expanded
         ? [0, 10, 16]
@@ -806,22 +843,40 @@ export function Keyboard3D({ selected, mini = false, expanded = false }: Keyboar
             : [0, 8, 12]
     const fov = expanded ? 35 : mini ? 50 : 40
 
-    return (
-        <div className="w-full h-full bg-gradient-to-b from-gray-100 to-gray-200 dark:from-gray-800 dark:to-gray-900 rounded-lg overflow-hidden">
-            <Canvas camera={{ position: cameraPos, fov }}>
-                <ambientLight intensity={mini ? 0.5 : 0.4} />
-                <directionalLight position={[10, 10, 5]} intensity={mini ? 0.8 : 1} castShadow={!mini} />
-                {!mini && <directionalLight position={[-10, 5, -5]} intensity={0.3} />}
-                <KeyboardModel selected={selected} />
+    const canvas = (
+        <Canvas
+            camera={{ position: cameraPos, fov }}
+            frameloop={mini ? "demand" : "always"}
+        >
+            <ambientLight intensity={mini ? 0.5 : 0.4} />
+            <directionalLight position={[10, 10, 5]} intensity={mini ? 0.8 : 1} castShadow={!mini} />
+            {!mini && <directionalLight position={[-10, 5, -5]} intensity={0.3} />}
+            <KeyboardModel selected={selected} mini={mini} />
+            {!mini && (
                 <OrbitControls
                     enablePan={false}
-                    minDistance={mini ? 6 : 8}
+                    minDistance={8}
                     maxDistance={expanded ? 35 : 25}
                     minPolarAngle={0.2}
                     maxPolarAngle={Math.PI / 2.2}
                 />
-                <Environment preset="studio" />
-            </Canvas>
+            )}
+            <Environment preset="studio" />
+            {mini && <InvalidateOnMount />}
+        </Canvas>
+    )
+
+    if (mini) {
+        return (
+            <LazyCanvas className="w-full h-full bg-gradient-to-b from-gray-100 to-gray-200 dark:from-gray-800 dark:to-gray-900 rounded-lg overflow-hidden">
+                {canvas}
+            </LazyCanvas>
+        )
+    }
+
+    return (
+        <div className="w-full h-full bg-gradient-to-b from-gray-100 to-gray-200 dark:from-gray-800 dark:to-gray-900 rounded-lg overflow-hidden">
+            {canvas}
         </div>
     )
 }

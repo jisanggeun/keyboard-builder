@@ -127,6 +127,8 @@ export interface Build {
     id: number;
     name: string;
     user_id: number;
+    is_public: boolean;
+    like_count: number;
     created_at: string;
     updated_at: string;
     pcb: PCB | null;
@@ -140,6 +142,7 @@ export interface Build {
 export interface BuildListItem {
     id: number;
     name: string;
+    is_public: boolean;
     created_at: string;
     updated_at: string;
     has_pcb: boolean;
@@ -152,6 +155,7 @@ export interface BuildListItem {
 
 export interface BuildCreateData {
     name: string;
+    is_public?: boolean;
     pcb_id?: number | null;
     case_id?: number | null;
     plate_id?: number | null;
@@ -162,10 +166,95 @@ export interface BuildCreateData {
 
 export interface BuildUpdateData {
     name?: string;
+    is_public?: boolean;
     pcb_id?: number | null;
     case_id?: number | null;
     plate_id?: number | null;
     stabilizer_id?: number | null;
     switch_id?: number | null;
     keycap_id?: number | null;
+}
+
+// Public builds
+export interface PublicBuild {
+    id: number;
+    name: string;
+    user_id: number;
+    user_nickname: string | null;
+    is_public: boolean;
+    like_count: number;
+    is_liked: boolean;
+    created_at: string;
+    updated_at: string;
+    pcb: PCB | null;
+    case: Case | null;
+    plate: Plate | null;
+    stabilizer: Stabilizer | null;
+    switch: Switch | null;
+    keycap: Keycap | null;
+}
+
+export interface LikeResponse {
+    liked: boolean;
+    like_count: number;
+}
+
+// Account
+export interface UserUpdate {
+    nickname?: string | null;
+    profile_image?: string | null;
+}
+
+export interface PasswordChange {
+    current_password: string;
+    new_password: string;
+}
+
+// Community
+export type PostCategory = "question" | "review" | "info" | "showcase";
+
+export interface PostAuthor {
+    id: number;
+    nickname: string | null;
+    profile_image: string | null;
+}
+
+export interface PostListItem {
+    id: number;
+    title: string;
+    category: PostCategory;
+    like_count: number;
+    comment_count: number;
+    author: PostAuthor;
+    build: Build | null;
+    created_at: string;
+}
+
+export interface CommentData {
+    id: number;
+    content: string;
+    author: PostAuthor;
+    created_at: string;
+}
+
+export interface PostDetail {
+    id: number;
+    title: string;
+    content: string;
+    category: PostCategory;
+    like_count: number;
+    is_liked: boolean;
+    comment_count: number;
+    author: PostAuthor;
+    build: Build | null;
+    comments: CommentData[];
+    created_at: string;
+    updated_at: string;
+}
+
+export interface PostCreateData {
+    title: string;
+    content: string;
+    category: PostCategory;
+    build_id?: number | null;
 }
