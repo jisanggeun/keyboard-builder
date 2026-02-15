@@ -6,7 +6,11 @@ import { useAuth } from "@/lib/auth-context";
 import { usePosts, useTogglePostLike } from "@/lib/hooks";
 import { PostCategory, PostListItem, SelectedParts } from "@/lib/types";
 import { SiteHeader } from "@/components/site-header";
-import { Keyboard3D } from "@/components/keyboard-3d";
+import dynamic from "next/dynamic";
+const Keyboard3D = dynamic(
+    () => import("@/components/keyboard-3d").then((mod) => mod.Keyboard3D),
+    { ssr: false }
+);
 import { Button } from "@/components/ui/button";
 
 const CATEGORY_LABELS: Record<PostCategory | "all", string> = {

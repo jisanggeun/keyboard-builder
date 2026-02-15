@@ -6,7 +6,11 @@ import { Card } from "@/components/ui/card";
 import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
 import { SiteHeader } from "@/components/site-header";
-import { Keyboard3D } from "@/components/keyboard-3d";
+import dynamic from "next/dynamic";
+const Keyboard3D = dynamic(
+    () => import("@/components/keyboard-3d").then((mod) => mod.Keyboard3D),
+    { ssr: false }
+);
 import { SaveBuildDialog } from "@/components/save-build-dialog";
 import { LoadBuildsDialog } from "@/components/load-builds-dialog";
 import { SelectedParts, AllParts, PCB, Case as CaseType, Plate, Switch, Stabilizer, Keycap } from "@/lib/types";

@@ -1,5 +1,6 @@
 from fastapi import FastAPI
 from fastapi.middleware.cors import CORSMiddleware
+from starlette.middleware.gzip import GZipMiddleware
 from app.database import engine, Base
 from app.models import (
     PCB, Case, Plate, Stabilizer, Switch, Keycap, CompatibleGroup,
@@ -17,6 +18,9 @@ app = FastAPI(
     description="커스텀 키보드 호환성 검증 API",
     version="1.0.0"
 )
+
+# GZIP 압축
+app.add_middleware(GZipMiddleware, minimum_size=500)
 
 # CORS 설정
 app.add_middleware(

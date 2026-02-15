@@ -1,5 +1,6 @@
 from typing import List, Optional
 
+import sqlalchemy as sa
 from fastapi import APIRouter, Depends, HTTPException, status
 from sqlalchemy.orm import Session, joinedload
 
@@ -223,12 +224,20 @@ def toggle_build_like(
 
     if existing:
         db.delete(existing)
-        build.like_count = max(0, build.like_count - 1)
+        db.execute(
+            sa.update(Build)
+            .where(Build.id == build_id)
+            .values(like_count=sa.func.greatest(0, Build.like_count - 1))
+        )
         liked = False
     else:
         like = BuildLike(user_id=current_user.id, build_id=build_id)
         db.add(like)
-        build.like_count = build.like_count + 1
+        db.execute(
+            sa.update(Build)
+            .where(Build.id == build_id)
+            .values(like_count=Build.like_count + 1)
+        )
         liked = True
 
     db.commit()

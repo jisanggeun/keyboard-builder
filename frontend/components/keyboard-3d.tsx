@@ -857,7 +857,7 @@ export function Keyboard3D({ selected, mini = false, expanded = false }: Keyboar
     const canvas = (
         <Canvas
             camera={{ position: cameraPos, fov }}
-            frameloop={mini ? "demand" : "always"}
+            frameloop="demand"
         >
             <ambientLight intensity={mini ? 0.5 : 0.4} />
             <directionalLight position={[10, 10, 5]} intensity={mini ? 0.8 : 1} castShadow={!mini} />

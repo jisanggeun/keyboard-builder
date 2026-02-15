@@ -16,7 +16,13 @@ class Base(DeclarativeBase):
 settings = Settings()
 
 # DB engine 생성
-engine = create_engine(settings.database_url)
+engine = create_engine(
+    settings.database_url,
+    pool_size=10,
+    max_overflow=20,
+    pool_pre_ping=True,
+    pool_recycle=1800,
+)
 
 # 세션 생성
 # 수동 commit, 수동 flush = 내가 직접 컨트롤 하는 것으로 더 안전하고 동작 예측 가능해짐

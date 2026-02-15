@@ -7,7 +7,11 @@ import { usePosts, usePost, useTogglePostLike } from "@/lib/hooks";
 import { PostCategory, PostListItem, SelectedParts } from "@/lib/types";
 import { SiteHeader } from "@/components/site-header";
 import { BuildCard } from "@/components/build-card";
-import { Keyboard3D } from "@/components/keyboard-3d";
+import dynamic from "next/dynamic";
+const Keyboard3D = dynamic(
+    () => import("@/components/keyboard-3d").then((mod) => mod.Keyboard3D),
+    { ssr: false }
+);
 import { Badge } from "@/components/ui/badge";
 
 const CATEGORY_LABELS: Record<PostCategory, string> = {
@@ -156,6 +160,51 @@ function BuildDetailPanel({ post, onClose, onLike, isLoggedIn }: { post: PostLis
     );
 }
 
+function PreviewComment({ comment }: { comment: { id: number; content: string; author: { nickname: string | null; profile_image: string | null }; replies?: typeof comment[]; created_at: string } }) {
+    const [showReplies, setShowReplies] = useState(true);
+    const replies = comment.replies ?? [];
+
+    return (
+        <div className="flex gap-3">
+            {comment.author.profile_image ? (
+                <img src={comment.author.profile_image} alt="" className="w-8 h-8 rounded-full object-cover flex-shrink-0" />
+            ) : (
+                <div className="w-8 h-8 rounded-full bg-gradient-to-br from-purple-400 to-pink-400 flex items-center justify-center text-xs font-semibold text-white flex-shrink-0">
+                    {(comment.author.nickname || "A").charAt(0).toUpperCase()}
+                </div>
+            )}
+            <div className="flex-1 min-w-0">
+                <p className="text-sm">
+                    <span className="font-semibold text-gray-900 dark:text-white mr-1.5">
+                        {comment.author.nickname || "Anonymous"}
+                    </span>
+                    <span className="text-gray-700 dark:text-gray-300">
+                        {comment.content}
+                    </span>
+                </p>
+                {replies.length > 0 && (
+                    <div className="mt-2">
+                        <button
+                            onClick={() => setShowReplies(!showReplies)}
+                            className="flex items-center gap-2 text-xs font-semibold text-gray-400 hover:text-gray-600 dark:hover:text-gray-300 transition-colors"
+                        >
+                            <span className="w-5 h-px bg-gray-300 dark:bg-gray-600" />
+                            {showReplies ? "답글 숨기기" : `답글 보기 (${replies.length}개)`}
+                        </button>
+                        {showReplies && (
+                            <div className="mt-2 space-y-2.5">
+                                {replies.map((r) => (
+                                    <PreviewComment key={r.id} comment={r} />
+                                ))}
+                            </div>
+                        )}
+                    </div>
+                )}
+            </div>
+        </div>
+    );
+}
+
 function PostPreviewPanel({ postId, token, onClose, likeOverride }: {
     postId: number;
     token?: string | null;
@@ -262,23 +311,11 @@ function PostPreviewPanel({ postId, token, onClose, likeOverride }: {
                     {post.comments && post.comments.length > 0 && (
                         <div className="border-t dark:border-gray-700 pt-3 space-y-3">
                             <h5 className="text-sm font-semibold text-gray-900 dark:text-white">
-                                댓글 ({post.comments.length})
+                                댓글 ({post.comment_count})
                             </h5>
-                            <div className="space-y-2.5">
+                            <div className="space-y-3">
                                 {post.comments.map((c) => (
-                                    <div key={c.id} className="text-sm">
-                                        <div className="flex items-center gap-1.5 mb-0.5">
-                                            <span className="font-medium text-gray-900 dark:text-white text-xs">
-                                                {c.author.nickname || "Anonymous"}
-                                            </span>
-                                            <span className="text-[10px] text-gray-400">
-                                                {new Date(c.created_at).toLocaleDateString("ko-KR")}
-                                            </span>
-                                        </div>
-                                        <p className="text-gray-600 dark:text-gray-400 text-xs">
-                                            {c.content}
-                                        </p>
-                                    </div>
+                                    <PreviewComment key={c.id} comment={c} />
                                 ))}
                             </div>
                         </div>

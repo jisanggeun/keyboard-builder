@@ -1,6 +1,6 @@
 import enum
 from sqlalchemy import Column, Integer, String, Text, DateTime, ForeignKey, UniqueConstraint, Enum
-from sqlalchemy.orm import relationship
+from sqlalchemy.orm import relationship, backref
 from sqlalchemy.sql import func
 from app.database import Base
 
@@ -37,11 +37,17 @@ class Comment(Base):
     id = Column(Integer, primary_key=True, index=True)
     user_id = Column(Integer, ForeignKey("users.id"), nullable=False, index=True)
     post_id = Column(Integer, ForeignKey("posts.id"), nullable=False, index=True)
+    parent_comment_id = Column(Integer, ForeignKey("comments.id"), nullable=True, index=True)
     content = Column(Text, nullable=False)
     created_at = Column(DateTime(timezone=True), server_default=func.now())
 
     user = relationship("User")
     post = relationship("Post", back_populates="comments")
+    replies = relationship(
+        "Comment",
+        backref=backref("parent", remote_side=[id]),
+        cascade="all, delete-orphan",
+    )
 
 
 class PostLike(Base):
